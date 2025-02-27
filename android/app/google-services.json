@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "936344085208",
+    "project_id": "lyfer-40955",
+    "storage_bucket": "lyfer-40955.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:936344085208:android:d500ef51ef495ced922dad",
+        "android_client_info": {
+          "package_name": "com.example.lyfer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBZpS0yO0bQ28RbdQIkTST2y2p9_hc0GcU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
