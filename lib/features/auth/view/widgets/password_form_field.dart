@@ -30,6 +30,7 @@ class _PasswordFormFieldState extends State<PasswordFormField> {
               Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
           onPressed: () {
             setState(() {
+              // TODO Fix not toggling obscure text
               _obscurePassword = !_obscurePassword;
             });
           },
