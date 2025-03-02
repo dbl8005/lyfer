@@ -9,51 +9,77 @@ import 'package:lyfer/features/auth/presentation/widgets/auth_button.dart';
 import 'package:lyfer/features/auth/presentation/widgets/email_form_field.dart';
 import 'package:lyfer/features/auth/presentation/widgets/password_form_field.dart';
 
-class LoginScreen extends ConsumerWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final authProvider = ref.watch(authServiceProvider);
-    final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-    final TextEditingController _emailController = TextEditingController();
-    final TextEditingController _passwordController = TextEditingController();
-    final bool _isLoading = false;
-    Future<void> _login() async {
-      if (!_formKey.currentState!.validate()) {
-        return;
-      }
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
+}
 
-      try {
-        await authProvider.signInEmailPassword(
-          _emailController.text.trim(),
-          _passwordController.text,
-        );
-        context.go(AppRouterConsts.home);
-      } on FirebaseAuthException catch (e) {
-        switch (e.code) {
-          case 'user-not-found':
-            AppSnackbar.show(
-                context: context, message: 'No user found for that email.');
-            break;
-          case 'wrong-password':
-            AppSnackbar.show(
-                context: context,
-                message: 'Wrong password provided for that user.');
-            break;
-          case 'invalid-email':
-            AppSnackbar.show(
-                context: context, message: 'Invalid email provided.');
-            break;
-          default:
-            AppSnackbar.show(
-                context: context, message: 'An error occurred: ${e.message}');
-        }
+class _LoginScreenState extends ConsumerState<LoginScreen> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
 
-        print(e);
-      }
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _login() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
     }
 
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final authProvider = ref.read(authServiceProvider);
+      await authProvider.signInEmailPassword(
+        _emailController.text.trim(),
+        _passwordController.text,
+      );
+      if (mounted) {
+        context.go(AppRouterConsts.home);
+      }
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+
+      switch (e.code) {
+        case 'user-not-found':
+          AppSnackbar.show(
+              context: context, message: 'No user found for that email.');
+          break;
+        case 'wrong-password':
+          AppSnackbar.show(
+              context: context,
+              message: 'Wrong password provided for that user.');
+          break;
+        case 'invalid-email':
+          AppSnackbar.show(
+              context: context, message: 'Invalid email provided.');
+          break;
+        default:
+          AppSnackbar.show(
+              context: context, message: 'An error occurred: ${e.message}');
+      }
+      print(e);
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -108,7 +134,10 @@ class LoginScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             AuthButton(
-                isLoading: _isLoading, onPressed: _login, text: 'Log In'),
+              isLoading: _isLoading,
+              onPressed: _login,
+              text: 'Log In',
+            ),
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,

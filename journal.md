@@ -3,10 +3,10 @@ Currently have:
 1. workign login
 2. working register
 3. manual redirect to home
+4. improve redirect logic to redirect base on auth status, and check if user can register
+5. impl email verification
 
 To do list:
-1. improve redirect logic to redirect base on auth status, and check if user can register
-2. implement google signin.
-3. impl forgot password
-4. impl email verification
-5. improve ui
+* implement google signin.
+* impl forgot password
+* improve ui
