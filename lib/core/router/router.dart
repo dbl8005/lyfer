@@ -1,8 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lyfer/features/auth/presentation/screens/verify_email_screen.dart';
 import 'package:lyfer/features/auth/providers/auth_provider.dart';
-import 'package:lyfer/features/auth/view/screens/login_screen.dart';
-import 'package:lyfer/features/auth/view/screens/signup_screen.dart';
+import 'package:lyfer/features/auth/presentation/screens/login_screen.dart';
+import 'package:lyfer/features/auth/presentation/screens/signup_screen.dart';
 import 'package:lyfer/features/home/home_screen.dart';
 
 class AppRouterConsts {
@@ -14,6 +16,7 @@ class AppRouterConsts {
   static const String about = '/about';
   static const String contact = '/contact';
   static const String notFound = '/not-found';
+  static const String verifyEmail = '/verify-email';
 }
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -22,10 +25,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: AppRouterConsts.login,
     redirect: (context, state) {
-      if (authState != null) {
+      final isLoggedIn = authState != null;
+
+      if (isLoggedIn) {
+        final User? user = authState;
+        print(user);
+        if (user?.emailVerified == false) {
+          return AppRouterConsts.verifyEmail;
+        }
         return AppRouterConsts.home;
       }
-      return AppRouterConsts.login;
+
+      return null;
     },
     routes: [
       GoRoute(
@@ -39,6 +50,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRouterConsts.home,
         builder: (context, state) => const HomeScreen(),
+      ),
+      GoRoute(
+        path: AppRouterConsts.verifyEmail,
+        builder: (context, state) => const VerifyEmailScreen(),
       ),
     ],
   );

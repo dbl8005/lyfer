@@ -5,9 +5,9 @@ import 'package:go_router/go_router.dart';
 import 'package:lyfer/core/router/router.dart';
 import 'package:lyfer/core/utils/snackbars/snackbar.dart';
 import 'package:lyfer/features/auth/providers/auth_provider.dart';
-import 'package:lyfer/features/auth/view/widgets/auth_button.dart';
-import 'package:lyfer/features/auth/view/widgets/email_form_field.dart';
-import 'package:lyfer/features/auth/view/widgets/password_form_field.dart';
+import 'package:lyfer/features/auth/presentation/widgets/auth_button.dart';
+import 'package:lyfer/features/auth/presentation/widgets/email_form_field.dart';
+import 'package:lyfer/features/auth/presentation/widgets/password_form_field.dart';
 
 class LoginScreen extends ConsumerWidget {
   const LoginScreen({super.key});
@@ -80,6 +80,7 @@ class LoginScreen extends ConsumerWidget {
                       if (p0 == null || p0.isEmpty) {
                         return 'Email is required';
                       }
+                      return null;
                     },
                   ),
                   const SizedBox(height: 16),
@@ -89,6 +90,7 @@ class LoginScreen extends ConsumerWidget {
                       if (p0 == null || p0.isEmpty) {
                         return 'Password is required';
                       }
+                      return null;
                     },
                   ),
                 ],
