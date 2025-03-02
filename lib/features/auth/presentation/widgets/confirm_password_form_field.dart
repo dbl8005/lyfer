@@ -17,9 +17,10 @@ class ConfirmPasswordFormField extends StatefulWidget {
 }
 
 class _ConfirmPasswordFormFieldState extends State<ConfirmPasswordFormField> {
+  bool _obscurePassword = true;
+
   @override
   Widget build(BuildContext context) {
-    bool _obscurePassword = true;
     return TextFormField(
       controller: widget.controller,
       decoration: InputDecoration(

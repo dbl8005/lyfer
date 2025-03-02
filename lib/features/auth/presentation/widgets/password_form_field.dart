@@ -16,9 +16,10 @@ class PasswordFormField extends StatefulWidget {
 }
 
 class _PasswordFormFieldState extends State<PasswordFormField> {
+  bool _obscurePassword = true;
+
   @override
   Widget build(BuildContext context) {
-    bool _obscurePassword = true;
     return TextFormField(
       controller: widget.controller,
       decoration: InputDecoration(
@@ -30,7 +31,6 @@ class _PasswordFormFieldState extends State<PasswordFormField> {
               Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
           onPressed: () {
             setState(() {
-              // TODO Fix not toggling obscure text
               _obscurePassword = !_obscurePassword;
             });
           },
