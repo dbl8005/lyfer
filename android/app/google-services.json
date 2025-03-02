@@ -12,7 +12,12 @@
           "package_name": "com.example.lyfer"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "936344085208-mvs14dujltjb7g1cepncsc46tgglcips.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBZpS0yO0bQ28RbdQIkTST2y2p9_hc0GcU"
@@ -20,7 +25,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "936344085208-mvs14dujltjb7g1cepncsc46tgglcips.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "936344085208-kco15gs8jmq6kfdk2vp5h1dni0hp141u.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.lyfer"
+              }
+            }
+          ]
         }
       }
     }

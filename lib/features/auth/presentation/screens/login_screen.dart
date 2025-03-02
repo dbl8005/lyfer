@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:line_icons/line_icons.dart';
 import 'package:lyfer/core/router/router.dart';
 import 'package:lyfer/core/utils/snackbars/snackbar.dart';
 import 'package:lyfer/features/auth/providers/auth_provider.dart';
@@ -78,6 +79,43 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
+  Future<void> _googleSignIn() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final authProvider = ref.read(authServiceProvider);
+      await authProvider.signInWithGoogle();
+
+      if (mounted) {
+        context.go(AppRouterConsts.home);
+      }
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+
+      String message;
+      switch (e.code) {
+        case 'sign_in_canceled':
+          message = 'Sign in was canceled';
+          break;
+        case 'google_sign_in_failed':
+          message = 'Google Sign In failed. Please try again';
+          break;
+        default:
+          message = e.message ?? 'An error occurred during sign in';
+      }
+
+      AppSnackbar.show(context: context, message: message);
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -139,6 +177,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               text: 'Log In',
             ),
             const SizedBox(height: 16),
+            AuthButton(
+              isLoading: _isLoading,
+              onPressed: _googleSignIn,
+              text: 'Sign in with Google',
+              buttonColor: Colors.red,
+              leadingIcon: Icon(
+                LineIcons.googlePlusG,
+                color: Colors.white,
+                size: 30,
+              ),
+            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
