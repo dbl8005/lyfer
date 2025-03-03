@@ -15,9 +15,12 @@ To do list:
 
                                             - Habits -
 I have:
+* habits page
+* create habit
 
 I need to make:
     * home page, with tabs for habits, tasks, settings.
     * habit dashboard, with a list of habits, displaying a button to complete today habit.
     * create habit. (model, api call, service for interacting)
+    * fix icon display
     
