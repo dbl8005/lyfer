@@ -21,6 +21,8 @@ I have:
 I need to make:
     * home page, with tabs for habits, tasks, settings.
     * habit dashboard, with a list of habits, displaying a button to complete today habit.
-    * create habit. (model, api call, service for interacting)
+    * habit detail page, with a list of all habits, displaying a button to complete today habit.
+    * 
+    
     
     
