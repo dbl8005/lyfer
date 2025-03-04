@@ -52,15 +52,15 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
         final habitsBySection = _groupHabitsBySection(habits);
 
         return SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Build sections in the determined order
                 for (int i = 0; i < sectionOrder.length; i++)
                   Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildHabitSection(
                         context: context,
@@ -68,11 +68,15 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
                         habits: habitsBySection[sectionOrder[i]] ?? [],
                         isCurrentSection: sectionOrder[i] == currentDaySection,
                       ),
-                      if (i < sectionOrder.length - 1)
-                        const SizedBox(height: 24),
+                      Divider(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .outline
+                            .withValues(alpha: 0.3),
+                      ),
                     ],
                   ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 130), // Bottom padding
               ],
             ),
           ),
@@ -155,23 +159,12 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.add_task,
-            size: 64,
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
-          ),
-          const SizedBox(height: 16),
           const Text(
             'No habits yet',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Create your first habit by tapping the + button',
-            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -248,43 +241,45 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
   }
 
   Widget _buildEmptySectionMessage(DaySection section) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      margin: const EdgeInsets.only(top: 8),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
-        ),
-      ),
-      child: Center(
-        child: Text(
-          'No ${section.displayText.toLowerCase()} habits yet',
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(16),
+          margin: const EdgeInsets.only(top: 8),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+            ),
+          ),
+          child: Center(
+            child: Text(
+              'No ${section.displayText.toLowerCase()} habits yet',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
           ),
         ),
-      ),
+        const SizedBox(height: 12),
+      ],
     );
   }
 
   Widget _buildHabitsList(List<HabitModel> habits) {
-    return ListView.separated(
+    return ListView.builder(
       physics: const NeverScrollableScrollPhysics(),
       shrinkWrap: true,
       itemCount: habits.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 8),
+      padding: EdgeInsets.symmetric(
+        vertical: 0,
+        horizontal: 0,
+      ),
       itemBuilder: (context, index) {
         final habit = habits[index];
-        return Card(
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(
-              color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
-            ),
-          ),
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
           child: HabitTile(habit: habit),
         );
       },
