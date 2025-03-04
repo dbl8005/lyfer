@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:line_icons/line_icon.dart';
 import 'package:line_icons/line_icons.dart';
+import 'package:lyfer/core/config/enums/habit_enums.dart';
 import 'package:lyfer/core/config/enums/icon_enum.dart';
 import 'package:lyfer/features/habits/models/habit_model.dart';
 import 'package:lyfer/features/habits/services/habit_service.dart';
@@ -44,40 +45,101 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
         }
 
         final habits = snapshot.data!;
-        return ListView.builder(
-          padding: const EdgeInsets.all(8),
-          itemCount: habits.length,
-          itemBuilder: (context, index) {
-            final habit = habits[index];
-            return Card(
-              child: ListTile(
-                leading: LineIcon(
-                  // ! Shows a different icon
-                  HabitIcon.getIconData(habit.icon),
-                  color: habit.color ?? Theme.of(context).primaryColor,
-                  size: 28,
-                ),
-                title: Text(
-                  habit.name,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                subtitle: Text(habit.description),
-                trailing: IconButton(
-                  icon: const Icon(Icons.more_vert),
-                  onPressed: () {
-                    // TODO: Add habit options menu
-                  },
-                ),
-                onTap: () {
-                  // TODO: Navigate to habit details
+        final morningHabits = habits
+            .where((habit) => habit.preferredTime == DaySection.morning)
+            .toList();
+        final noonHabits = habits
+            .where((habit) => habit.preferredTime == DaySection.noon)
+            .toList();
+        final eveningHabits = habits
+            .where((habit) => habit.preferredTime == DaySection.evening)
+            .toList();
+        final alldayHabits = habits
+            .where((habit) => habit.preferredTime == DaySection.allDay)
+            .toList();
+        return Column(
+          children: [
+            Row(children: [
+              LineIcon(DaySection.morning.icon, size: 36),
+              const SizedBox(width: 8),
+              Text(DaySection.morning.displayText,
+                  style: const TextStyle(fontSize: 34)),
+            ]),
+            const SizedBox(height: 8),
+            Expanded(
+              child: ListView.builder(
+                itemCount: morningHabits.length,
+                itemBuilder: (context, index) {
+                  final habit = morningHabits[index];
+                  return HabitTile(habit: habit);
                 },
               ),
-            );
-          },
+            ),
+            const SizedBox(height: 16),
+            Row(children: [
+              LineIcon(DaySection.noon.icon, size: 36),
+              const SizedBox(width: 8),
+              Text(DaySection.noon.displayText,
+                  style: const TextStyle(fontSize: 34)),
+            ]),
+            const SizedBox(height: 8),
+            Expanded(
+              child: ListView.builder(
+                itemCount: noonHabits.length,
+                itemBuilder: (context, index) {
+                  final habit = noonHabits[index];
+                  return HabitTile(habit: habit);
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(children: [
+              LineIcon(DaySection.evening.icon, size: 36),
+              const SizedBox(width: 8),
+              Text(DaySection.evening.displayText,
+                  style: const TextStyle(fontSize: 34)),
+            ]),
+            const SizedBox(height: 8),
+            Expanded(
+              child: ListView.builder(
+                itemCount: eveningHabits.length,
+                itemBuilder: (context, index) {
+                  final habit = eveningHabits[index];
+                  return HabitTile(habit: habit);
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(children: [
+              LineIcon(DaySection.allDay.icon, size: 36),
+              const SizedBox(width: 8),
+              Text(DaySection.allDay.displayText,
+                  style: const TextStyle(fontSize: 34)),
+            ]),
+            const SizedBox(height: 8),
+          ],
         );
       },
+    );
+  }
+}
+
+class HabitTile extends StatelessWidget {
+  const HabitTile({
+    super.key,
+    required this.habit,
+  });
+
+  final HabitModel habit;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: LineIcon(
+          HabitIcon.values.firstWhere((e) => e.name == habit.icon).icon),
+      title: Text(habit.name),
+      subtitle: Text(habit.description),
+      trailing: Text('${habit.streakCount} days'),
     );
   }
 }
