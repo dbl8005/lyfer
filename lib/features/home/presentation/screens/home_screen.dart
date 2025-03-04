@@ -35,14 +35,18 @@ class HomeScreen extends ConsumerWidget {
       onPressed: () {
         context.push('/habits/new');
       },
-      shape: CircleBorder(),
+      shape: const CircleBorder(),
     );
 
     return Scaffold(
+      extendBody: true, // Make body extend behind the navigation bar
       appBar: AppBar(
         title: const Text('Home'),
       ),
-      body: screens[currentIndex],
+      body: IndexedStack(
+        index: currentIndex,
+        children: screens,
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton:
           currentIndex == 1 ? habitFloatingActionButton : null,

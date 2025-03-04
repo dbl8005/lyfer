@@ -17,37 +17,45 @@ class CustomBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Make the overall container transparent
     return Container(
-      margin: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(25),
-        child: GNav(
-          iconSize: 30,
-          activeColor: Theme.of(context).colorScheme.primaryContainer,
-          color: Colors.grey,
-          backgroundColor: Theme.of(context).cardColor,
-          selectedIndex: currentIndex,
-          onTabChange: (index) {
-            ref.read(currentIndexProvider.notifier).state = index;
-          },
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          gap: 8,
-          tabs: [
-            GButton(icon: iconList[0], text: 'Dashboard'),
-            GButton(icon: iconList[1], text: 'Habits'),
-            GButton(icon: iconList[2], text: 'Tasks'),
-            GButton(icon: iconList[3], text: 'Settings'),
+      // Add padding instead of margin to ensure touchable area remains the same
+      padding: const EdgeInsets.all(20),
+      color: Colors.transparent,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(25),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.3),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
+            ),
           ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(25),
+          child: GNav(
+            iconSize: 30,
+            activeColor: Theme.of(context).colorScheme.primaryContainer,
+            color: Colors.grey,
+            backgroundColor: Colors.transparent, // Make this transparent
+            tabBackgroundColor:
+                Theme.of(context).colorScheme.primary.withOpacity(0.1),
+            selectedIndex: currentIndex,
+            onTabChange: (index) {
+              ref.read(currentIndexProvider.notifier).state = index;
+            },
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            gap: 8,
+            tabs: [
+              GButton(icon: iconList[0], text: 'Dashboard'),
+              GButton(icon: iconList[1], text: 'Habits'),
+              GButton(icon: iconList[2], text: 'Tasks'),
+              GButton(icon: iconList[3], text: 'Settings'),
+            ],
+          ),
         ),
       ),
     );
