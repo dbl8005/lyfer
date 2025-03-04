@@ -3,9 +3,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:lyfer/core/config/enums/habit_enums.dart';
 
 class HabitModel {
-  final String? id; // Nullable since Firestore will assign it
+  final String? id;
   final String name;
-  final IconData icon;
+  final String icon;
   final DateTime createdAt;
   final Color? color;
   final DaySection preferredTime;
@@ -13,7 +13,7 @@ class HabitModel {
   final int streakCount;
   final int targetDays;
   final Frequency frequency;
-  final List<DateTime> completedDates;
+  final Set<DateTime> completedDates;
   final bool isArchived;
   final Reminder reminderType;
   final DaySection? reminderTime;
@@ -22,9 +22,9 @@ class HabitModel {
   final Map<DateTime, String>? notes;
 
   HabitModel({
-    this.id, // Optional since Firestore will assign it
+    this.id,
     required this.name,
-    required this.icon,
+    required this.icon, // Store as string instead of IconData
     DateTime? createdAt,
     this.color,
     required this.preferredTime,
@@ -32,7 +32,7 @@ class HabitModel {
     this.streakCount = 0,
     this.targetDays = 21,
     this.frequency = Frequency.daily,
-    List<DateTime>? completedDates,
+    Set<DateTime>? completedDates,
     this.isArchived = false,
     this.reminderType = Reminder.none,
     this.reminderTime,
@@ -40,20 +40,20 @@ class HabitModel {
     this.priority,
     this.notes,
   })  : createdAt = createdAt ?? DateTime.now(),
-        completedDates = completedDates ?? [];
+        completedDates = completedDates ?? {};
 
-  // Copy with method for immutability
+  // Copy with method
   HabitModel copyWith({
     String? id,
     String? name,
-    IconData? icon,
+    String? iconName,
     Color? color,
     DaySection? preferredTime,
     String? description,
     int? streakCount,
     int? targetDays,
     Frequency? frequency,
-    List<DateTime>? completedDates,
+    Set<DateTime>? completedDates,
     bool? isArchived,
     Reminder? reminderType,
     DaySection? reminderTime,
@@ -64,7 +64,7 @@ class HabitModel {
     return HabitModel(
       id: id ?? this.id,
       name: name ?? this.name,
-      icon: icon ?? this.icon,
+      icon: icon,
       createdAt: createdAt,
       color: color ?? this.color,
       preferredTime: preferredTime ?? this.preferredTime,
@@ -86,9 +86,9 @@ class HabitModel {
   Map<String, dynamic> toJson() {
     return {
       'name': name,
-      'icon': icon.codePoint,
+      'iconName': icon, // Store as string
       'createdAt': Timestamp.fromDate(createdAt),
-      'color': color?.value ?? null,
+      'color': color?.value,
       'preferredTime': preferredTime.index,
       'description': description,
       'streakCount': streakCount,
@@ -102,7 +102,10 @@ class HabitModel {
       'tags': tags,
       'priority': priority,
       'notes': notes?.map(
-        (key, value) => MapEntry(Timestamp.fromDate(key).toString(), value),
+        (key, value) => MapEntry(
+          Timestamp.fromDate(key).toString(),
+          value,
+        ),
       ),
     };
   }
@@ -110,9 +113,9 @@ class HabitModel {
   // From JSON for Firestore
   factory HabitModel.fromJson(String id, Map<String, dynamic> json) {
     return HabitModel(
-      id: id, // Firestore document ID
+      id: id,
       name: json['name'] as String,
-      icon: IconData(json['icon'] as int, fontFamily: 'MaterialIcons'),
+      icon: json['iconName'], // Read as string
       createdAt: (json['createdAt'] as Timestamp).toDate(),
       color: json['color'] != null ? Color(json['color'] as int) : null,
       preferredTime: DaySection.values[json['preferredTime'] as int],
@@ -122,7 +125,7 @@ class HabitModel {
       frequency: Frequency.values[json['frequency'] as int],
       completedDates: (json['completedDates'] as List)
           .map((date) => (date as Timestamp).toDate())
-          .toList(),
+          .toSet(),
       isArchived: json['isArchived'] as bool,
       reminderType: Reminder.values[json['reminderType'] as int],
       reminderTime: json['reminderTime'] != null

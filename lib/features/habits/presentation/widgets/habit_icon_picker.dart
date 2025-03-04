@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:line_icons/line_icons.dart';
+import 'package:lyfer/core/config/enums/icon_enum.dart';
 
 class HabitIconPicker extends StatelessWidget {
   final IconData selectedIcon;
@@ -38,28 +39,11 @@ class HabitIconPicker extends StatelessWidget {
             crossAxisCount: 4,
             mainAxisSpacing: 8,
             crossAxisSpacing: 8,
-            children: [
-              LineIcons.home,
-              LineIcons.heart,
-              LineIcons.running,
-              LineIcons.book,
-              LineIcons.pen,
-              LineIcons.calendar,
-              LineIcons.clock,
-              LineIcons.smilingFace,
-              LineIcons.star,
-              LineIcons.coffee,
-              LineIcons.guitar,
-              LineIcons.bicycle,
-              LineIcons.music,
-              LineIcons.sun,
-              LineIcons.moon,
-              LineIcons.leaf,
-            ]
+            children: HabitIcon.values
                 .map((icon) => IconButton(
-                      icon: Icon(icon, size: 24),
+                      icon: Icon(icon.icon, size: 24),
                       onPressed: () {
-                        onIconSelected(icon);
+                        onIconSelected(icon.icon);
                         Navigator.pop(context);
                       },
                       style: IconButton.styleFrom(

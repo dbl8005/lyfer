@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:line_icons/line_icon.dart';
 import 'package:lyfer/core/config/enums/habit_enums.dart';
+import 'package:lyfer/core/config/enums/icon_enum.dart';
 import 'package:lyfer/features/habits/models/habit_model.dart';
 import 'package:lyfer/features/habits/presentation/widgets/habit_color_picker.dart';
 import 'package:lyfer/features/habits/presentation/widgets/habit_text_field.dart';
@@ -20,7 +22,7 @@ class _NewHabitScreenState extends ConsumerState<NewHabitScreen> {
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
 
-  Color? _selectedColor;
+  Color? _selectedColor = Colors.grey;
   IconData _selectedIcon = LineIcons.star;
   DaySection _selectedTimeOfDay = DaySection.morning;
   Frequency _selectedFrequency = Frequency.daily;
@@ -40,10 +42,16 @@ class _NewHabitScreenState extends ConsumerState<NewHabitScreen> {
 
     setState(() => _isLoading = true);
 
+    final selectedIconName = HabitIcon.values
+        .firstWhere(
+          (habitIcon) => habitIcon.icon == _selectedIcon,
+        )
+        .name;
+
     try {
       final habit = HabitModel(
         name: _nameController.text,
-        icon: _selectedIcon,
+        icon: selectedIconName,
         color: _selectedColor,
         preferredTime: _selectedTimeOfDay,
         description: _descriptionController.text,
@@ -157,7 +165,13 @@ class _NewHabitScreenState extends ConsumerState<NewHabitScreen> {
       items: DaySection.values.map((section) {
         return DropdownMenuItem(
           value: section,
-          child: Text(_formatEnumName(section.toString())),
+          child: Row(
+            children: [
+              LineIcon(section.icon),
+              const SizedBox(width: 8),
+              Text(section.displayText),
+            ],
+          ),
         );
       }).toList(),
       onChanged: (value) {

@@ -38,7 +38,7 @@ class HabitColorPicker extends StatelessWidget {
           title: const Text('Pick a color'),
           content: SingleChildScrollView(
             child: BlockPicker(
-              pickerColor: selectedColor ?? Colors.blue,
+              pickerColor: selectedColor ?? Colors.grey,
               onColorChanged: onColorChanged,
             ),
           ),

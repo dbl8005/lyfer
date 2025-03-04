@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:line_icons/line_icon.dart';
 import 'package:line_icons/line_icons.dart';
+import 'package:lyfer/core/config/enums/icon_enum.dart';
 import 'package:lyfer/features/habits/models/habit_model.dart';
 import 'package:lyfer/features/habits/services/habit_service.dart';
 
@@ -52,7 +53,7 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
               child: ListTile(
                 leading: LineIcon(
                   // ! Shows a different icon
-                  habit.icon,
+                  HabitIcon.getIconData(habit.icon),
                   color: habit.color ?? Theme.of(context).primaryColor,
                   size: 28,
                 ),
