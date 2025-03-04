@@ -41,18 +41,15 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
         }
 
         final habits = snapshot.data!;
-        final morningHabits = habits
-            .where((habit) => habit.preferredTime == DaySection.morning)
-            .toList();
-        final noonHabits = habits
-            .where((habit) => habit.preferredTime == DaySection.noon)
-            .toList();
-        final eveningHabits = habits
-            .where((habit) => habit.preferredTime == DaySection.evening)
-            .toList();
-        final alldayHabits = habits
-            .where((habit) => habit.preferredTime == DaySection.allDay)
-            .toList();
+
+        // Determine current day section based on time of day
+        final currentDaySection = _getCurrentDaySection();
+
+        // Create sections list in order based on current time
+        final sectionOrder = _getSectionOrder(currentDaySection);
+
+        // Group habits by section
+        final habitsBySection = _groupHabitsBySection(habits);
 
         return SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -61,29 +58,20 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildHabitSection(
-                  context: context,
-                  section: DaySection.morning,
-                  habits: morningHabits,
-                ),
-                const SizedBox(height: 24),
-                _buildHabitSection(
-                  context: context,
-                  section: DaySection.noon,
-                  habits: noonHabits,
-                ),
-                const SizedBox(height: 24),
-                _buildHabitSection(
-                  context: context,
-                  section: DaySection.evening,
-                  habits: eveningHabits,
-                ),
-                const SizedBox(height: 24),
-                _buildHabitSection(
-                  context: context,
-                  section: DaySection.allDay,
-                  habits: alldayHabits,
-                ),
+                // Build sections in the determined order
+                for (int i = 0; i < sectionOrder.length; i++)
+                  Column(
+                    children: [
+                      _buildHabitSection(
+                        context: context,
+                        section: sectionOrder[i],
+                        habits: habitsBySection[sectionOrder[i]] ?? [],
+                        isCurrentSection: sectionOrder[i] == currentDaySection,
+                      ),
+                      if (i < sectionOrder.length - 1)
+                        const SizedBox(height: 24),
+                    ],
+                  ),
                 const SizedBox(height: 16),
               ],
             ),
@@ -91,6 +79,75 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
         );
       },
     );
+  }
+
+  // Get current day section based on time
+  DaySection _getCurrentDaySection() {
+    final now = TimeOfDay.now();
+    final hour = now.hour;
+
+    if (hour >= 5 && hour < 12) {
+      return DaySection.morning;
+    } else if (hour >= 12 && hour < 17) {
+      return DaySection.noon;
+    } else {
+      return DaySection.evening;
+    }
+  }
+
+  // Get ordered sections with current section first and all day last
+  List<DaySection> _getSectionOrder(DaySection currentSection) {
+    List<DaySection> sections = [
+      DaySection.morning,
+      DaySection.noon,
+      DaySection.evening,
+    ];
+
+    if (currentSection == DaySection.morning) {
+      sections = [
+        DaySection.morning,
+        DaySection.noon,
+        DaySection.evening,
+        DaySection.allDay,
+      ];
+    }
+    if (currentSection == DaySection.noon) {
+      sections = [
+        DaySection.noon,
+        DaySection.evening,
+        DaySection.allDay,
+        DaySection.morning,
+      ];
+    }
+    if (currentSection == DaySection.evening) {
+      sections = [
+        DaySection.evening,
+        DaySection.allDay,
+        DaySection.morning,
+        DaySection.noon,
+      ];
+    }
+
+    return sections;
+  }
+
+  // Group habits by section
+  Map<DaySection, List<HabitModel>> _groupHabitsBySection(
+      List<HabitModel> habits) {
+    return {
+      DaySection.morning: habits
+          .where((habit) => habit.preferredTime == DaySection.morning)
+          .toList(),
+      DaySection.noon: habits
+          .where((habit) => habit.preferredTime == DaySection.noon)
+          .toList(),
+      DaySection.evening: habits
+          .where((habit) => habit.preferredTime == DaySection.evening)
+          .toList(),
+      DaySection.allDay: habits
+          .where((habit) => habit.preferredTime == DaySection.allDay)
+          .toList(),
+    };
   }
 
   Widget _buildEmptyState() {
@@ -125,11 +182,12 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
     required BuildContext context,
     required DaySection section,
     required List<HabitModel> habits,
+    bool isCurrentSection = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader(context, section),
+        _buildSectionHeader(context, section, isCurrentSection),
         const SizedBox(height: 12),
         habits.isEmpty
             ? _buildEmptySectionMessage(section)
@@ -138,11 +196,14 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
     );
   }
 
-  Widget _buildSectionHeader(BuildContext context, DaySection section) {
+  Widget _buildSectionHeader(
+      BuildContext context, DaySection section, bool isCurrentSection) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.4),
+        color: isCurrentSection
+            ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.5)
+            : Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.4),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -150,7 +211,9 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
           LineIcon(
             section.icon,
             size: 28,
-            color: Theme.of(context).colorScheme.primary,
+            color: isCurrentSection
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).colorScheme.primary.withOpacity(0.8),
           ),
           const SizedBox(width: 12),
           Text(
@@ -161,6 +224,24 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
               color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
+          if (isCurrentSection) ...[
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                'Now',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
