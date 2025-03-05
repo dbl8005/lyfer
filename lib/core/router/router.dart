@@ -1,12 +1,16 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lyfer/features/auth/presentation/screens/verify_email_screen.dart';
 import 'package:lyfer/features/auth/providers/auth_provider.dart';
 import 'package:lyfer/features/auth/presentation/screens/login_screen.dart';
 import 'package:lyfer/features/auth/presentation/screens/signup_screen.dart';
+import 'package:lyfer/features/habits/models/habit_model.dart';
+import 'package:lyfer/features/habits/presentation/screens/edit_habit_screen.dart';
 import 'package:lyfer/features/habits/presentation/screens/habits_screen.dart';
 import 'package:lyfer/features/habits/presentation/screens/new_habit_screen.dart';
+import 'package:lyfer/features/habits/services/habit_service.dart';
 import 'package:lyfer/features/home/presentation/screens/home_screen.dart';
 
 class AppRouterConsts {
@@ -73,6 +77,28 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRouterConsts.newHabit,
         builder: (context, state) => const NewHabitScreen(),
+      ),
+      GoRoute(
+        path: '/habits/edit/:id',
+        builder: (context, state) {
+          final habitId = state.pathParameters['id']!;
+          // You'll need to fetch the habit first
+          final habitService = ref.read(habitServiceProvider);
+          return FutureBuilder<HabitModel>(
+            future: habitService.getHabitById(habitId),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Scaffold(
+                    body: Center(child: CircularProgressIndicator()));
+              }
+              if (!snapshot.hasData || snapshot.hasError) {
+                return const Scaffold(
+                    body: Center(child: Text('Habit not found')));
+              }
+              return EditHabitScreen(habit: snapshot.data!);
+            },
+          );
+        },
       ),
     ],
   );

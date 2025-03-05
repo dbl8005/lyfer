@@ -1,4 +1,3 @@
-import 'package:lyfer/features/habits/models/habit_model.dart';
 import 'package:lyfer/core/config/enums/habit_enums.dart';
 
 class StreakCalculator {
@@ -17,9 +16,6 @@ class StreakCalculator {
         return _calculateWeeklyStreak(sortedDates, timesPerPeriod);
       case Frequency.monthly:
         return _calculateMonthlyStreak(sortedDates, timesPerPeriod);
-      case Frequency.custom:
-        // For custom frequency, we'll use the daily streak calculation for now
-        return _calculateDailyStreak(sortedDates);
     }
   }
 

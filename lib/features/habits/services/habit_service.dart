@@ -85,4 +85,16 @@ class HabitService {
       throw 'Failed to toggle habit completion: $e';
     }
   }
+
+  Future<HabitModel> getHabitById(String habitId) async {
+    try {
+      final doc = await _habitsCollection.doc(habitId).get();
+      if (!doc.exists) {
+        throw 'Habit not found';
+      }
+      return HabitModel.fromJson(doc.id, doc.data()!);
+    } catch (e) {
+      throw 'Failed to get habit: $e';
+    }
+  }
 }

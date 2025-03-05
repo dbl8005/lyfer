@@ -18,7 +18,6 @@ enum Frequency {
   daily,
   weekly,
   monthly,
-  custom,
 }
 
 enum Reminder {

@@ -11,7 +11,7 @@ class HabitModel {
   final DaySection preferredTime;
   final String description;
   final int streakCount;
-  final int targetDays;
+  final int? targetDays;
   final Frequency frequency;
   final int timesPerPeriod; // New field - e.g., 3 times per week
   final Set<DateTime> completedDates;
@@ -31,7 +31,7 @@ class HabitModel {
     required this.preferredTime,
     this.description = '',
     this.streakCount = 0,
-    this.targetDays = 21,
+    this.targetDays,
     this.frequency = Frequency.daily,
     this.timesPerPeriod = 1, // Default is 1 time per period
     Set<DateTime>? completedDates,
@@ -53,7 +53,8 @@ class HabitModel {
     DaySection? preferredTime,
     String? description,
     int? streakCount,
-    int? targetDays,
+    // Use Object? to distinguish between null (set to null) and not provided (keep existing)
+    Object? targetDays = const Object(),
     Frequency? frequency,
     int? timesPerPeriod,
     Set<DateTime>? completedDates,
@@ -73,7 +74,9 @@ class HabitModel {
       preferredTime: preferredTime ?? this.preferredTime,
       description: description ?? this.description,
       streakCount: streakCount ?? this.streakCount,
-      targetDays: targetDays ?? this.targetDays,
+      // Check if targetDays was explicitly provided (even if null)
+      targetDays:
+          targetDays != const Object() ? targetDays as int? : this.targetDays,
       frequency: frequency ?? this.frequency,
       timesPerPeriod: timesPerPeriod ?? this.timesPerPeriod,
       completedDates: completedDates ?? this.completedDates,
@@ -126,7 +129,7 @@ class HabitModel {
       preferredTime: DaySection.values[json['preferredTime'] as int],
       description: json['description'] as String,
       streakCount: json['streakCount'] as int,
-      targetDays: json['targetDays'] as int,
+      targetDays: json['targetDays'] as int?,
       frequency: Frequency.values[json['frequency'] as int],
       timesPerPeriod: json['timesPerPeriod'] as int? ?? 1,
       completedDates: (json['completedDates'] as List)
@@ -156,7 +159,6 @@ class HabitModel {
       Frequency.daily => 'day',
       Frequency.weekly => 'week',
       Frequency.monthly => 'month',
-      Frequency.custom => 'period',
     };
   }
 
@@ -198,10 +200,6 @@ class HabitModel {
           }
         }
         return completionsThisMonth >= timesPerPeriod;
-
-      case Frequency.custom:
-        // For custom frequency, we'd need additional logic
-        return false;
     }
   }
 
@@ -237,9 +235,6 @@ class HabitModel {
         return completedDates
             .where((date) => date.year == now.year && date.month == now.month)
             .length;
-
-      case Frequency.custom:
-        return 0;
     }
   }
 

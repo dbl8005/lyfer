@@ -56,7 +56,7 @@ class _NewHabitScreenState extends ConsumerState<NewHabitScreen> {
         color: _selectedColor,
         preferredTime: _selectedTimeOfDay,
         description: _descriptionController.text,
-        targetDays: _targetDays ?? 21,
+        targetDays: _targetDays,
         frequency: _selectedFrequency,
         timesPerPeriod: _timesPerPeriod, // Add this line
       );
