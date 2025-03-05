@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:line_icons/line_icon.dart';
+import 'package:lyfer/core/config/enums/habit_enums.dart';
 import 'package:lyfer/core/config/enums/icon_enum.dart';
 import 'package:lyfer/core/utils/snackbars/snackbar.dart';
 import 'package:lyfer/features/habits/models/habit_model.dart';
 import 'package:lyfer/features/habits/services/habit_service.dart';
-import 'package:lyfer/features/habits/utils/streak_calculator.dart';
+import 'package:lyfer/core/utils/helpers/streak_calculator.dart';
 
 class HabitTile extends ConsumerWidget {
   const HabitTile({
@@ -17,19 +18,21 @@ class HabitTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isCompletedToday = habit.completedDates.any(
-      (date) =>
-          date.year == DateTime.now().year &&
-          date.month == DateTime.now().month &&
-          date.day == DateTime.now().day,
-    );
+    // Check if habit is completed for the current period
+    final isCompletedForPeriod = habit.isCompletedForCurrentPeriod();
 
-    // Calculate current streak
-    final currentStreak =
-        StreakCalculator.calculateStreak(habit.completedDates.toList());
+    // Check if habit is completed specifically for today
+    final isCompletedToday = habit.isCompletedForDay(DateTime.now());
+
+    // Get number of completions in this period
+    final completionsThisPeriod = habit.getCompletionsInCurrentPeriod();
+
+    // Calculate current streak based on frequency
+    final currentStreak = StreakCalculator.calculateStreak(
+        habit.completedDates.toList(), habit.frequency, habit.timesPerPeriod);
 
     return Opacity(
-      opacity: isCompletedToday ? 0.5 : 1,
+      opacity: isCompletedForPeriod ? 0.5 : 1,
       child: Card(
         color: isCompletedToday
             ? Theme.of(context).colorScheme.primaryContainer.withAlpha(50)
@@ -62,13 +65,44 @@ class HabitTile extends ConsumerWidget {
             habit.name,
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
-          subtitle: habit.description.isNotEmpty
-              ? Text(
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (habit.description.isNotEmpty)
+                Text(
                   habit.description,
-                  maxLines: 2,
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                )
-              : null,
+                ),
+              if (habit.frequency != Frequency.daily)
+                Row(
+                  children: [
+                    Text(
+                      '${completionsThisPeriod}/${habit.timesPerPeriod} this ${habit.periodLabel}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: LinearProgressIndicator(
+                        value: completionsThisPeriod / habit.timesPerPeriod,
+                        backgroundColor:
+                            Theme.of(context).colorScheme.surfaceVariant,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          isCompletedForPeriod
+                              ? Colors.green
+                              : Theme.of(context).colorScheme.primary,
+                        ),
+                        minHeight: 5,
+                      ),
+                    ),
+                  ],
+                ),
+            ],
+          ),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -76,8 +110,6 @@ class HabitTile extends ConsumerWidget {
               StreakCounter(currentStreak: currentStreak),
               const SizedBox(width: 8),
               // Completion button
-              // TODO Change functionality to hold 2 seconds to mark as completed
-              // TODO Add a confirmation dialog before marking as uncompleted
               IconButton(
                 icon: Icon(
                   isCompletedToday ? Icons.check_circle : Icons.circle_outlined,
@@ -89,11 +121,24 @@ class HabitTile extends ConsumerWidget {
                   habitService.toggleHabitCompletion(habit.id!, DateTime.now());
 
                   // Show feedback with snackbar
+                  String message;
+                  if (habit.frequency == Frequency.daily) {
+                    message = isCompletedToday
+                        ? 'Habit marked as incomplete'
+                        : 'Habit completed for today!';
+                  } else {
+                    final remainingCompletions =
+                        habit.timesPerPeriod - completionsThisPeriod;
+                    message = isCompletedToday
+                        ? 'Removed completion for today'
+                        : remainingCompletions <= 0
+                            ? 'Goal reached for this ${habit.periodLabel}!'
+                            : '${remainingCompletions - 1} more to go this ${habit.periodLabel}';
+                  }
+
                   AppSnackbar.show(
                     context: context,
-                    message: isCompletedToday
-                        ? 'Habit marked as incomplete'
-                        : 'Habit completed for today!',
+                    message: message,
                     backgroundColor:
                         isCompletedToday ? Colors.red : Colors.green,
                   );

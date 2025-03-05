@@ -26,6 +26,7 @@ class _NewHabitScreenState extends ConsumerState<NewHabitScreen> {
   IconData _selectedIcon = LineIcons.star;
   DaySection _selectedTimeOfDay = DaySection.morning;
   Frequency _selectedFrequency = Frequency.daily;
+  int _timesPerPeriod = 1; // Default to 1 time per period
   int? _targetDays;
 
   bool _isLoading = false;
@@ -57,6 +58,7 @@ class _NewHabitScreenState extends ConsumerState<NewHabitScreen> {
         description: _descriptionController.text,
         targetDays: _targetDays ?? 21,
         frequency: _selectedFrequency,
+        timesPerPeriod: _timesPerPeriod, // Add this line
       );
 
       await ref.read(habitServiceProvider).createHabit(habit);
@@ -183,23 +185,73 @@ class _NewHabitScreenState extends ConsumerState<NewHabitScreen> {
   }
 
   Widget _buildFrequencyPicker() {
-    return DropdownButtonFormField<Frequency>(
-      value: _selectedFrequency,
-      decoration: const InputDecoration(
-        labelText: 'Frequency',
-        border: OutlineInputBorder(),
-      ),
-      items: Frequency.values.map((frequency) {
-        return DropdownMenuItem(
-          value: frequency,
-          child: Text(_formatEnumName(frequency.toString())),
-        );
-      }).toList(),
-      onChanged: (value) {
-        if (value != null) {
-          setState(() => _selectedFrequency = value);
-        }
-      },
+    return Column(
+      children: [
+        DropdownButtonFormField<Frequency>(
+          value: _selectedFrequency,
+          decoration: const InputDecoration(
+            labelText: 'Frequency',
+            border: OutlineInputBorder(),
+          ),
+          items: Frequency.values.map((frequency) {
+            return DropdownMenuItem(
+              value: frequency,
+              child: Text(_formatEnumName(frequency.toString())),
+            );
+          }).toList(),
+          onChanged: (value) {
+            if (value != null) {
+              setState(() {
+                _selectedFrequency = value;
+                // Reset times per period when frequency changes
+                if (value == Frequency.daily) {
+                  _timesPerPeriod = 1;
+                }
+              });
+            }
+          },
+        ),
+        if (_selectedFrequency != Frequency.daily) ...[
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Times per ${_selectedFrequency == Frequency.weekly ? 'week' : 'month'}:',
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ),
+              SizedBox(
+                width: 120,
+                child: HabitTextField(
+                  controller:
+                      TextEditingController(text: _timesPerPeriod.toString()),
+                  label: '',
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Required';
+                    }
+                    final number = int.tryParse(value);
+                    if (number == null || number < 1) {
+                      return 'Min 1';
+                    }
+                    return null;
+                  },
+                  onChanged: (value) {
+                    final number = int.tryParse(value);
+                    if (number != null && number > 0) {
+                      setState(() {
+                        _timesPerPeriod = number;
+                      });
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+        ],
+      ],
     );
   }
 
