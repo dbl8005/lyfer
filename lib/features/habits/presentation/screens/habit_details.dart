@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:line_icons/line_icon.dart';
 import 'package:lyfer/core/config/enums/icon_enum.dart';
+import 'package:lyfer/core/router/router.dart';
 import 'package:lyfer/features/habits/models/habit_model.dart';
 
 class HabitDetails extends ConsumerWidget {
@@ -14,12 +16,16 @@ class HabitDetails extends ConsumerWidget {
       appBar: AppBar(
         title: Text('Habit Details'),
         actions: [
-          IconButton(
-            onPressed: () {
-              // Handle edit action
-            },
-            icon: const Icon(Icons.edit),
-          ),
+          // IconButton(
+          // onPressed: () {
+          //   // Handle edit action
+          //   context.go(
+          //     '${AppRouterConsts.habitEdit}/${habit.id}',
+          //     extra: habit,
+          //   );
+          // },
+          // icon: const Icon(Icons.edit),
+          // ),
         ],
       ),
       body: Padding(
