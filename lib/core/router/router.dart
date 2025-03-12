@@ -13,6 +13,10 @@ import 'package:lyfer/features/habits/presentation/screens/habits_screen.dart';
 import 'package:lyfer/features/habits/presentation/screens/new_habit_screen.dart';
 import 'package:lyfer/features/habits/services/habit_service.dart';
 import 'package:lyfer/features/home/presentation/screens/home_screen.dart';
+import 'package:lyfer/features/notes/models/note_model.dart';
+import 'package:lyfer/features/notes/presentation/screens/new_note_screen.dart';
+import 'package:lyfer/features/notes/presentation/screens/note_screen.dart';
+import 'package:lyfer/features/notes/services/note_service.dart';
 
 class AppRouterConsts {
   static const String home = '/';
@@ -22,7 +26,9 @@ class AppRouterConsts {
   static const String signup = '/signup';
   static const String verifyEmail = '/verify-email';
   static const String habitDetails = '/habits/details';
+  static const String note = '/habits/details/note';
   static const String habitEdit = '/habits/edit';
+  static const String newNote = '/habits/new-note';
 }
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -123,6 +129,41 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               return HabitDetails(habit: snapshot.data!);
             },
           );
+        },
+      ),
+      GoRoute(
+        path: '${AppRouterConsts.note}/:habitId/:noteId',
+        builder: (context, state) {
+          final habitId = state.pathParameters['habitId']!;
+          final noteId = state.pathParameters['noteId']!;
+
+          // You'll need to fetch the note first
+          final noteService = ref.read(noteServiceProvider);
+          return FutureBuilder<NoteModel>(
+            future: noteService.getNoteById(habitId, noteId),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Scaffold(
+                    body: Center(child: CircularProgressIndicator()));
+              }
+              if (!snapshot.hasData || snapshot.hasError) {
+                return const Scaffold(
+                    body: Center(child: Text('Note not found')));
+              }
+              final note = snapshot.data!;
+              return NoteScreen(
+                habitId: habitId,
+                note: note,
+              );
+            },
+          );
+        },
+      ),
+      GoRoute(
+        path: '${AppRouterConsts.newNote}/:habitId',
+        builder: (context, state) {
+          final habitId = state.pathParameters['habitId']!;
+          return NewNoteScreen(habitId: habitId);
         },
       ),
     ],
