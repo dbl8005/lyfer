@@ -8,6 +8,7 @@ import 'package:lyfer/features/auth/presentation/screens/login_screen.dart';
 import 'package:lyfer/features/auth/presentation/screens/signup_screen.dart';
 import 'package:lyfer/features/habits/models/habit_model.dart';
 import 'package:lyfer/features/habits/presentation/screens/edit_habit_screen.dart';
+import 'package:lyfer/features/habits/presentation/screens/habit_details.dart';
 import 'package:lyfer/features/habits/presentation/screens/habits_screen.dart';
 import 'package:lyfer/features/habits/presentation/screens/new_habit_screen.dart';
 import 'package:lyfer/features/habits/services/habit_service.dart';
@@ -20,6 +21,8 @@ class AppRouterConsts {
   static const String login = '/login';
   static const String signup = '/signup';
   static const String verifyEmail = '/verify-email';
+  static const String habitDetails = '/habits/details';
+  static const String habitEdit = '/habits/edit';
 }
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -79,7 +82,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const NewHabitScreen(),
       ),
       GoRoute(
-        path: '/habits/edit/:id',
+        path: '${AppRouterConsts.habitEdit}/:id',
         builder: (context, state) {
           final habitId = state.pathParameters['id']!;
           // You'll need to fetch the habit first
@@ -96,6 +99,28 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     body: Center(child: Text('Habit not found')));
               }
               return EditHabitScreen(habit: snapshot.data!);
+            },
+          );
+        },
+      ),
+      GoRoute(
+        path: '${AppRouterConsts.habitDetails}/:id',
+        builder: (context, state) {
+          final habitId = state.pathParameters['id']!;
+          // You'll need to fetch the habit first
+          final habitService = ref.read(habitServiceProvider);
+          return FutureBuilder<HabitModel>(
+            future: habitService.getHabitById(habitId),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Scaffold(
+                    body: Center(child: CircularProgressIndicator()));
+              }
+              if (!snapshot.hasData || snapshot.hasError) {
+                return const Scaffold(
+                    body: Center(child: Text('Habit not found')));
+              }
+              return HabitDetails(habit: snapshot.data!);
             },
           );
         },

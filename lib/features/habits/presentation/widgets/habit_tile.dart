@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:line_icons/line_icon.dart';
+import 'package:line_icons/line_icons.dart';
 import 'package:lyfer/core/config/enums/habit_enums.dart';
 import 'package:lyfer/core/config/enums/icon_enum.dart';
+import 'package:lyfer/core/router/router.dart';
 import 'package:lyfer/core/utils/snackbars/snackbar.dart';
 import 'package:lyfer/features/habits/models/habit_model.dart';
 import 'package:lyfer/features/habits/presentation/screens/edit_habit_screen.dart';
@@ -111,6 +113,15 @@ class HabitTile extends ConsumerWidget {
               // Streak count container
               StreakCounter(currentStreak: currentStreak),
               const SizedBox(width: 8),
+              // Edit button
+              IconButton(
+                icon: const Icon(LineIcons.pen),
+                onPressed: () {
+                  // Navigate to edit screen
+                  context.push('${AppRouterConsts.habitEdit}/${habit.id}',
+                      extra: habit);
+                },
+              ),
               // Completion button
               IconButton(
                 icon: Icon(
@@ -149,8 +160,11 @@ class HabitTile extends ConsumerWidget {
             ],
           ),
           onTap: () {
-            // Navigate to habit details/edit screen
-            context.push('/habits/edit/${habit.id}');
+            // Navigate to habit details
+            context.push(
+              '${AppRouterConsts.habitDetails}/${habit.id}',
+              extra: habit,
+            );
           },
         ),
       ),
