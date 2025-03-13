@@ -1,6 +1,6 @@
-                                                 Auth                                                  
+Auth                                                  
 Currently have:
-1. workign login
+1. working login
 2. working register
 3. manual redirect to home
 4. improve redirect logic to redirect base on auth status, and check if user can register
@@ -15,14 +15,21 @@ To do list:
 
                                             - Habits -
 I have:
-* habits page
-* create habit
+* habits page with chronological sections and auto-scroll to current section
+* create habit with comprehensive options
+* edit habit functionality
+* category-based habit organization
+* specific day selection for better habit scheduling
+* priority settings for habits
+* reminder configuration
+* note taking for habits
 
 I need to make:
-    * home page, with tabs for habits, tasks, settings.
-    * habit dashboard, with a list of habits, displaying a button to complete today habit.
-    * habit detail page, with a list of all habits, displaying a button to complete today habit.
-    * 
+* home page, with tabs for habits, tasks, settings.
+* habit dashboard improvements
+* implement notification system for reminders
+* better error handling and offline support
+    
 # Habits Feature Summary
 
 ## Core Functionality
@@ -30,21 +37,24 @@ I need to make:
 The habits feature provides a comprehensive habit tracking system in your Flutter app with the following functionality:
 
 1. **Habit Display**
-   - `HabitsScreen` organizes habits by time of day (morning, noon, evening, all day)
-   - The current time section is highlighted and shown first
-   - Each habit displays a `HabitTile` with relevant information
+   - `HabitsScreen` organizes habits by time of day (morning, afternoon, evening, night, all day)
+   - The current time section is highlighted and auto-scrolled to on load
+   - Each habit displays a `HabitTile` with relevant information including category icon, name, and status
 
 2. **Habit Management**
    - Create new habits via `NewHabitScreen`
-   - Configure properties: name, icon, color, description, time of day, frequency
+   - Edit existing habits via `EditHabitScreen`
+   - Configure properties: name, category, color, description, time of day, frequency, priority
    - Support for frequency types: daily, weekly, monthly, custom
    - Set completion targets (e.g., 3 times per week)
+   - Select specific days of the week for habit completion
 
 3. **Habit Tracking**
    - Mark habits as completed for the day
    - Track completion streaks via `StreakCalculator`
    - Visual progress indicator for period goals
    - Streak tracking based on time period (daily/weekly/monthly)
+   - Smart day selection ensures habits are only checked for scheduled days
 
 4. **Data Management**
    - `HabitService` handles CRUD operations using Firebase
@@ -55,68 +65,59 @@ The habits feature provides a comprehensive habit tracking system in your Flutte
    - Weekly: Streak based on meeting weekly completion target (e.g., 3 times per week)
    - Monthly: Streak based on meeting monthly completion target
 
-## Well-Implemented Components
+6. **Categorization and Priority**
+   - Habits organized by categories with appropriate icons
+   - Priority levels affect visual display and can be used for sorting
+   - Customizable color schemes for each habit
 
-1. **UI Organization**
-   - Clean separation of habits by time of day
-   - Responsive layout with appropriate padding
-   - Visual indicators for current section
+7. **Notes System**
+   - Create and manage notes for each habit
+   - Notes feature titles, content, tags, and color-coding
 
-2. **Data Model**
-   - Well-structured `HabitModel` with comprehensive properties
-   - Proper serialization/deserialization for Firestore
+## Recent Improvements
 
-3. **Streak Calculation**
-   - Sophisticated logic for different frequency types
-   - Handles edge cases like week/month transitions
+1. **UI Organization and Navigation**
+   - Fixed routing issues for the note screen
+   - Improved habit details screen
+   - Implemented chronological ordering of sections with auto-scroll to current time period
 
-## Areas for Improvement
+2. **Enhanced Habit Configuration**
+   - Added day selector for specific weekday scheduling
+   - Replaced icon selection with category-based system
+   - Implemented priority selection with visual indicators
+   - Added comprehensive reminder system with time options
+
+3. **Data Model Updates**
+   - Expanded HabitModel to include selectedDays, priority, and reminder settings
+   - Added proper serialization/deserialization for new fields
+   - Improved handling of category data
+
+4. **Better Component Reusability**
+   - Created reusable widgets like DaySelector, CategorySelector, and PrioritySelector
+   - Improved consistency between screens for habit creation and editing
+
+## Planned Improvements
 
 1. **UI/UX Refinements**
-   - Habit completion action lacks visual feedback/animation
-   - No ability to see habit history/calendar view
-   - Limited statistics on habit performance
+   - Add animations for habit completion actions
+   - Implement calendar/history view for habits
+   - Enhance statistics display with charts and insights
 
-2. **Feature Gaps**
-   - No habit editing functionality shown
-   - No habit archiving UI (though model supports it)
-   - No reminders implementation (though model supports it)
-   - No implementation of the target days tracking (counts days until goal)
-
-3. **Technical Improvements**
-   - Repetitive code in streak calculator could be refactored
-   - Missing comprehensive unit tests (not shown in workspace)
-   - No error handling for network issues
-   - Firestore queries don't use indexing optimization for large datasets
-
-4. **Specific Implementation Issues**
-   - The weekly/monthly streak calculation could be more lenient at period boundaries
-   - No localization support for time periods and messages
-   - Habit completion state on day boundaries might have edge cases
-   - The `_getWeekNumber` function doesn't handle international week numbering standards
-
-## Next Steps Recommendations
-
-1. **Complete Core Functionality**
-   - Implement habit editing and deletion
-   - Add calendar/history view for each habit
-   - Implement reminder notifications
-
-2. **Enhance User Experience**
-   - Add habit statistics and insights
-   - Improve visual feedback for habit completion
-   - Implement animations for state changes
+2. **Feature Gaps to Fill**
+   - Implement notification scheduling for reminders
+   - Add habit archiving UI and functionality
+   - Implement target days tracking with visual countdown
 
 3. **Technical Improvements**
-   - Add proper error handling and offline support
-   - Optimize Firebase queries and add indexing
+   - Add proper error handling with fallback UI
+   - Implement offline support with local caching
+   - Optimize Firebase queries with indexing
    - Add unit and widget tests
-   - Refactor duplicate code in streak calculation
 
 4. **Advanced Features**
-   - Add habit categories/grouping
-   - Implement social features (challenges, sharing)
+   - Expand category management with custom categories
+   - Add habit suggestions based on user patterns
+   - Implement habit sharing or social challenges
    - Add data export/import functionality
-   - Implement habit suggestion system
 
-The implementation shows a strong foundation with good architecture but would benefit from the improvements noted above to make it more robust and user-friendly.
+The habit feature has evolved significantly with better scheduling options, categorization, priority handling, and UI improvements. The next phase will focus on implementing the actual notifications system, enhancing visualization, and adding more robust error handling.
