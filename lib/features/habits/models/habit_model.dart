@@ -18,9 +18,11 @@ class HabitModel {
   final bool isArchived;
   final Reminder reminderType;
   final DaySection? reminderTime;
+  final TimeOfDay? specificReminderTime; // New: specific time for reminder
   final List<String>? tags;
   final int? priority;
   final Map<DateTime, String>? notes;
+  final Set<int> selectedDays; // New: days of week (0 = Monday, 6 = Sunday)
 
   HabitModel({
     this.id,
@@ -38,11 +40,16 @@ class HabitModel {
     this.isArchived = false,
     this.reminderType = Reminder.none,
     this.reminderTime,
+    this.specificReminderTime,
     this.tags,
     this.priority,
     this.notes,
+    Set<int>? selectedDays,
   })  : createdAt = createdAt ?? DateTime.now(),
-        completedDates = completedDates ?? {};
+        completedDates = completedDates ?? {},
+        // If no days selected, default to all days for daily habits, or empty for others
+        selectedDays = selectedDays ??
+            (frequency == Frequency.daily ? {0, 1, 2, 3, 4, 5, 6} : {});
 
   // Copy with method
   HabitModel copyWith({
@@ -53,7 +60,6 @@ class HabitModel {
     DaySection? preferredTime,
     String? description,
     int? streakCount,
-    // Use Object? to distinguish between null (set to null) and not provided (keep existing)
     Object? targetDays = const Object(),
     Frequency? frequency,
     int? timesPerPeriod,
@@ -61,9 +67,11 @@ class HabitModel {
     bool? isArchived,
     Reminder? reminderType,
     DaySection? reminderTime,
+    TimeOfDay? specificReminderTime,
     List<String>? tags,
     int? priority,
     Map<DateTime, String>? notes,
+    Set<int>? selectedDays,
   }) {
     return HabitModel(
       id: id ?? this.id,
@@ -74,7 +82,6 @@ class HabitModel {
       preferredTime: preferredTime ?? this.preferredTime,
       description: description ?? this.description,
       streakCount: streakCount ?? this.streakCount,
-      // Check if targetDays was explicitly provided (even if null)
       targetDays:
           targetDays != const Object() ? targetDays as int? : this.targetDays,
       frequency: frequency ?? this.frequency,
@@ -83,9 +90,11 @@ class HabitModel {
       isArchived: isArchived ?? this.isArchived,
       reminderType: reminderType ?? this.reminderType,
       reminderTime: reminderTime ?? this.reminderTime,
+      specificReminderTime: specificReminderTime ?? this.specificReminderTime,
       tags: tags ?? this.tags,
       priority: priority ?? this.priority,
       notes: notes ?? this.notes,
+      selectedDays: selectedDays ?? this.selectedDays,
     );
   }
 
@@ -93,7 +102,7 @@ class HabitModel {
   Map<String, dynamic> toJson() {
     return {
       'name': name,
-      'iconName': icon, // Store as string
+      'iconName': icon,
       'createdAt': Timestamp.fromDate(createdAt),
       'color': color?.value,
       'preferredTime': preferredTime.index,
@@ -107,6 +116,12 @@ class HabitModel {
       'isArchived': isArchived,
       'reminderType': reminderType.index,
       'reminderTime': reminderTime?.index,
+      'specificReminderTime': specificReminderTime != null
+          ? {
+              'hour': specificReminderTime!.hour,
+              'minute': specificReminderTime!.minute
+            }
+          : null,
       'tags': tags,
       'priority': priority,
       'notes': notes?.map(
@@ -115,6 +130,7 @@ class HabitModel {
           value,
         ),
       ),
+      'selectedDays': selectedDays.toList(),
     };
   }
 
@@ -123,7 +139,7 @@ class HabitModel {
     return HabitModel(
       id: id,
       name: json['name'] as String,
-      icon: json['iconName'], // Read as string
+      icon: json['iconName'],
       createdAt: (json['createdAt'] as Timestamp).toDate(),
       color: json['color'] != null ? Color(json['color'] as int) : null,
       preferredTime: DaySection.values[json['preferredTime'] as int],
@@ -140,6 +156,12 @@ class HabitModel {
       reminderTime: json['reminderTime'] != null
           ? DaySection.values[json['reminderTime'] as int]
           : null,
+      specificReminderTime: json['specificReminderTime'] != null
+          ? TimeOfDay(
+              hour: json['specificReminderTime']['hour'],
+              minute: json['specificReminderTime']['minute'],
+            )
+          : null,
       tags: json['tags'] != null ? List<String>.from(json['tags']) : null,
       priority: json['priority'] as int?,
       notes: json['notes'] != null
@@ -149,6 +171,9 @@ class HabitModel {
                 value as String,
               ),
             )
+          : null,
+      selectedDays: json['selectedDays'] != null
+          ? (json['selectedDays'] as List).map((day) => day as int).toSet()
           : null,
     );
   }
