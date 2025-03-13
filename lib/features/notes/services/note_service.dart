@@ -94,7 +94,16 @@ class NoteService {
           .collection('notes')
           .doc(noteId)
           .get();
-      return NoteModel.fromMap(doc.data()!..['id'] = doc.id);
+
+      if (!doc.exists) {
+        throw 'Note not found';
+      }
+
+      // Create a new map with the data and the document ID
+      Map<String, dynamic> data = {...doc.data()!};
+      data['id'] = doc.id; // Make sure ID is included
+
+      return NoteModel.fromMap(data);
     } catch (e) {
       throw 'Failed to get note: $e';
     }

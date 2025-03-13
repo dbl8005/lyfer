@@ -58,22 +58,24 @@ class _HabitDetailsState extends ConsumerState<HabitDetails> {
             // Habit icon and name
             Row(
               children: [
-                // Placeholder for habit icon
-                widget.habit.icon != null
-                    ? LineIcon(
-                        HabitIcon.values
-                            .firstWhere((e) => e.name == widget.habit.icon)
-                            .icon,
-                        size: 40,
-                      )
-                    : const Icon(
-                        Icons.check_circle_outline,
-                        size: 40,
-                      ),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: widget.habit.color ??
+                        widget.habit.category.defaultColor.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    widget.habit.category.icon,
+                    size: 40,
+                    color: widget.habit.color ??
+                        widget.habit.category.defaultColor,
+                  ),
+                ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Text(
-                    '${widget.habit.name}',
+                    widget.habit.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.headlineLarge,

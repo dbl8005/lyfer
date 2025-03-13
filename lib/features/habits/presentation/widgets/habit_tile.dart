@@ -12,6 +12,7 @@ import 'package:lyfer/features/habits/models/habit_model.dart';
 import 'package:lyfer/features/habits/presentation/screens/edit_habit_screen.dart';
 import 'package:lyfer/features/habits/services/habit_service.dart';
 import 'package:lyfer/core/utils/helpers/streak_calculator.dart';
+import 'package:lyfer/core/config/enums/habit_categories.dart';
 
 class HabitTile extends ConsumerWidget {
   const HabitTile({
@@ -55,21 +56,26 @@ class HabitTile extends ConsumerWidget {
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
           leading: Container(
-            padding: const EdgeInsets.all(6),
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: (habit.color ?? Theme.of(context).colorScheme.primary)
-                  .withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: habit.color ?? habit.category.defaultColor,
+                width: 2,
+              ),
+              shape: BoxShape.circle,
             ),
             child: LineIcon(
-              HabitIcon.values.firstWhere((e) => e.name == habit.icon).icon,
-              color: habit.color ?? Theme.of(context).colorScheme.primary,
+              habit.category.icon,
               size: 24,
+              color: habit.color ?? habit.category.defaultColor,
             ),
           ),
-          title: Text(
-            habit.name,
-            style: const TextStyle(fontWeight: FontWeight.bold),
+          title: Row(
+            children: [
+              Text(habit.name),
+              const SizedBox(width: 8),
+              _buildPriorityIndicator(context),
+            ],
           ),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -107,6 +113,9 @@ class HabitTile extends ConsumerWidget {
                     ),
                   ],
                 ),
+              if (habit.selectedDays.length > 0 &&
+                  habit.selectedDays.length < 7)
+                _buildActivedays(context),
             ],
           ),
           trailing: Row(
@@ -204,6 +213,81 @@ class HabitTile extends ConsumerWidget {
             );
           },
         ),
+      ),
+    );
+  }
+
+  // Add a method to show priority indicator
+  Widget _buildPriorityIndicator(BuildContext context) {
+    // Only show if priority is not none
+    if (habit.priority == Priority.none) {
+      return const SizedBox.shrink();
+    }
+
+    return Tooltip(
+      message: 'Priority: ${habit.priority.label}',
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: habit.priority.getColor(context).withOpacity(0.2),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Icon(
+          habit.priority.icon,
+          size: 16,
+          color: habit.priority.getColor(context),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActivedays(BuildContext context) {
+    if (habit.selectedDays.isEmpty ||
+        (habit.frequency == Frequency.daily &&
+            habit.selectedDays.length == 7)) {
+      return const SizedBox.shrink();
+    }
+
+    const dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 4.0),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.calendar_today_outlined,
+            size: 12,
+            color: Theme.of(context).colorScheme.secondary.withOpacity(0.7),
+          ),
+          const SizedBox(width: 4),
+          ...List.generate(7, (index) {
+            final isSelected = habit.selectedDays.contains(index);
+            return Container(
+              width: 14,
+              height: 14,
+              margin: const EdgeInsets.symmetric(horizontal: 1),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isSelected
+                    ? Theme.of(context).colorScheme.primaryContainer
+                    : Theme.of(context).colorScheme.surfaceVariant,
+              ),
+              child: Center(
+                child: Text(
+                  dayLabels[index],
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: isSelected
+                        ? Theme.of(context).colorScheme.onPrimaryContainer
+                        : Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            );
+          }),
+        ],
       ),
     );
   }

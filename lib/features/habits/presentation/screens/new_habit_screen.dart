@@ -10,6 +10,10 @@ import 'package:lyfer/features/habits/presentation/widgets/habit_text_field.dart
 import 'package:lyfer/features/habits/services/habit_service.dart';
 import 'package:line_icons/line_icons.dart';
 import 'package:lyfer/features/habits/presentation/widgets/habit_icon_picker.dart';
+import 'package:lyfer/features/habits/presentation/widgets/priority_selector.dart';
+import 'package:lyfer/features/habits/presentation/widgets/reminder_time_picker.dart';
+import 'package:lyfer/features/habits/presentation/widgets/category_selector.dart';
+import 'package:lyfer/core/config/enums/habit_categories.dart';
 
 class NewHabitScreen extends ConsumerStatefulWidget {
   const NewHabitScreen({super.key});
@@ -30,8 +34,15 @@ class _NewHabitScreenState extends ConsumerState<NewHabitScreen> {
   int _timesPerPeriod = 1; // Default to 1 time per period
   int? _targetDays;
   Set<int> _selectedDays = {0, 1, 2, 3, 4, 5, 6};
+  Priority _selectedPriority = Priority.none;
+
+  Reminder _selectedReminderType = Reminder.none;
+  DaySection? _selectedReminderTime;
+  TimeOfDay? _specificReminderTime;
 
   bool _isLoading = false;
+
+  String _selectedCategoryId = 'other';
 
   @override
   void dispose() {
@@ -54,7 +65,7 @@ class _NewHabitScreenState extends ConsumerState<NewHabitScreen> {
     try {
       final habit = HabitModel(
         name: _nameController.text,
-        icon: selectedIconName,
+        categoryId: _selectedCategoryId, // Replace icon with this
         color: _selectedColor,
         preferredTime: _selectedTimeOfDay,
         description: _descriptionController.text,
@@ -62,6 +73,10 @@ class _NewHabitScreenState extends ConsumerState<NewHabitScreen> {
         frequency: _selectedFrequency,
         timesPerPeriod: _timesPerPeriod,
         selectedDays: _selectedDays,
+        priority: _selectedPriority,
+        reminderType: _selectedReminderType,
+        reminderTime: _selectedReminderTime,
+        specificReminderTime: _specificReminderTime,
       );
 
       await ref.read(habitServiceProvider).createHabit(habit);
@@ -109,31 +124,24 @@ class _NewHabitScreenState extends ConsumerState<NewHabitScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                HabitIconPicker(
-                  selectedIcon: _selectedIcon,
-                  onIconSelected: (icon) {
-                    setState(() => _selectedIcon = icon);
-                  },
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: HabitTextField(
-                    controller: _nameController,
-                    label: 'Habit Name',
-                    hint: 'Enter habit name',
-                    validator: (value) {
-                      if (value?.isEmpty ?? true) {
-                        return 'Please enter a habit name';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-              ],
+            // Category selector on its own line
+            _buildCategorySelector(),
+            const SizedBox(height: 16),
+
+            // Habit name field
+            HabitTextField(
+              controller: _nameController,
+              label: 'Habit Name',
+              hint: 'Enter habit name',
+              validator: (value) {
+                if (value?.isEmpty ?? true) {
+                  return 'Please enter a habit name';
+                }
+                return null;
+              },
             ),
+
+            // Rest of your form fields
             const SizedBox(height: 16),
             HabitTextField(
               controller: _descriptionController,
@@ -156,6 +164,11 @@ class _NewHabitScreenState extends ConsumerState<NewHabitScreen> {
             _buildDaySelector(),
             const SizedBox(height: 16),
             _buildTargetDaysPicker(),
+            const SizedBox(height: 16),
+            _buildPrioritySelector(),
+            const SizedBox(height: 16),
+            _buildReminderPicker(),
+            const SizedBox(height: 16),
           ],
         ),
       ),
@@ -176,7 +189,7 @@ class _NewHabitScreenState extends ConsumerState<NewHabitScreen> {
             children: [
               LineIcon(section.icon),
               const SizedBox(width: 8),
-              Text(section.displayText),
+              Text(section.label),
             ],
           ),
         );
@@ -305,6 +318,56 @@ class _NewHabitScreenState extends ConsumerState<NewHabitScreen> {
           ),
         ],
       ],
+    );
+  }
+
+  Widget _buildPrioritySelector() {
+    return PrioritySelector(
+      selectedPriority: _selectedPriority,
+      onPriorityChanged: (priority) {
+        setState(() {
+          _selectedPriority = priority;
+        });
+      },
+    );
+  }
+
+  Widget _buildReminderPicker() {
+    return ReminderTimePicker(
+      reminderType: _selectedReminderType,
+      onReminderTypeChanged: (type) {
+        setState(() {
+          _selectedReminderType = type;
+        });
+      },
+      reminderTime: _selectedReminderTime,
+      onReminderTimeChanged: (time) {
+        setState(() {
+          _selectedReminderTime = time;
+        });
+      },
+      specificReminderTime: _specificReminderTime,
+      onSpecificTimeChanged: (time) {
+        setState(() {
+          _specificReminderTime = time;
+        });
+      },
+    );
+  }
+
+  Widget _buildCategorySelector() {
+    return CategorySelector(
+      selectedCategoryId: _selectedCategoryId,
+      onCategorySelected: (categoryId) {
+        setState(() {
+          _selectedCategoryId = categoryId;
+        });
+      },
+      onColorSelected: (color) {
+        setState(() {
+          _selectedColor = color;
+        });
+      },
     );
   }
 }

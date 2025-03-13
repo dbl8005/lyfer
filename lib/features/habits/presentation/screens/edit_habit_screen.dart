@@ -1,15 +1,17 @@
 // lib/features/habits/presentation/screens/edit_habit_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:lyfer/core/config/enums/habit_enums.dart';
+import 'package:lyfer/core/config/enums/icon_enum.dart';
 import 'package:lyfer/core/utils/snackbars/snackbar.dart';
 import 'package:lyfer/features/habits/models/habit_model.dart';
+import 'package:lyfer/features/habits/presentation/widgets/category_selector.dart';
 import 'package:lyfer/features/habits/presentation/widgets/habit_color_picker.dart';
-import 'package:lyfer/features/habits/presentation/widgets/habit_icon_picker.dart';
 import 'package:lyfer/features/habits/presentation/widgets/habit_text_field.dart';
+import 'package:lyfer/features/habits/presentation/widgets/priority_selector.dart';
+import 'package:lyfer/features/habits/presentation/widgets/reminder_time_picker.dart';
 import 'package:lyfer/features/habits/services/habit_service.dart';
-import 'package:lyfer/core/config/enums/icon_enum.dart';
-import 'package:line_icons/line_icons.dart';
 
 class EditHabitScreen extends ConsumerStatefulWidget {
   final HabitModel habit;
@@ -29,11 +31,18 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
   late final TextEditingController _descriptionController;
 
   late Color? _selectedColor;
-  late IconData _selectedIcon;
+  // Remove _selectedIcon as it's no longer used
   late DaySection _selectedTimeOfDay;
   late Frequency _selectedFrequency;
   late int _timesPerPeriod;
   late int? _targetDays;
+  late Set<int> _selectedDays;
+
+  late Priority _selectedPriority;
+  late String _selectedCategoryId;
+  late Reminder _selectedReminderType;
+  late DaySection? _selectedReminderTime;
+  late TimeOfDay? _specificReminderTime;
 
   bool _isLoading = false;
 
@@ -46,16 +55,22 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
         TextEditingController(text: widget.habit.description);
 
     _selectedColor = widget.habit.color;
-    _selectedIcon = HabitIcon.values
-        .firstWhere(
-          (icon) => icon.name == widget.habit.icon,
-          orElse: () => HabitIcon.star,
-        )
-        .icon;
+    // Remove the _selectedIcon initialization which uses the old system
     _selectedTimeOfDay = widget.habit.preferredTime;
     _selectedFrequency = widget.habit.frequency;
     _timesPerPeriod = widget.habit.timesPerPeriod;
     _targetDays = widget.habit.targetDays;
+
+    // Make sure _selectedDays is properly initialized with a default if needed
+    _selectedDays = widget.habit.selectedDays.isNotEmpty
+        ? widget.habit.selectedDays
+        : (_selectedFrequency == Frequency.daily ? {0, 1, 2, 3, 4, 5, 6} : {});
+
+    _selectedPriority = widget.habit.priority;
+    _selectedCategoryId = widget.habit.categoryId;
+    _selectedReminderType = widget.habit.reminderType;
+    _selectedReminderTime = widget.habit.reminderTime;
+    _specificReminderTime = widget.habit.specificReminderTime;
   }
 
   @override
@@ -71,20 +86,21 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
 
     setState(() => _isLoading = true);
 
-    final selectedIconName = HabitIcon.values
-        .firstWhere((habitIcon) => habitIcon.icon == _selectedIcon)
-        .name;
-
     try {
       final updatedHabit = widget.habit.copyWith(
         name: _nameController.text,
-        iconName: selectedIconName,
+        categoryId: _selectedCategoryId, // Changed from iconName
         color: _selectedColor,
         preferredTime: _selectedTimeOfDay,
         description: _descriptionController.text,
         frequency: _selectedFrequency,
         timesPerPeriod: _timesPerPeriod,
         targetDays: _targetDays,
+        selectedDays: _selectedDays, // Add selected days
+        priority: _selectedPriority, // Add priority
+        reminderType: _selectedReminderType, // Add reminder type
+        reminderTime: _selectedReminderTime, // Add reminder time
+        specificReminderTime: _specificReminderTime, // Add specific time
       );
 
       await ref.read(habitServiceProvider).updateHabit(updatedHabit);
@@ -167,6 +183,103 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
         .join(' ');
   }
 
+  Widget _buildDaySelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Active Days:',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          children: List.generate(7, (index) {
+            final dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            final isSelected = _selectedDays.contains(index);
+            return FilterChip(
+              label: Text(dayNames[index]),
+              selected: isSelected,
+              onSelected: (_) {
+                setState(() {
+                  // For daily habits, we always need at least one day selected
+                  if (_selectedFrequency == Frequency.daily &&
+                      _selectedDays.length == 1 &&
+                      _selectedDays.contains(index)) {
+                    return;
+                  }
+
+                  if (_selectedDays.contains(index)) {
+                    _selectedDays.remove(index);
+                  } else {
+                    _selectedDays.add(index);
+                  }
+                });
+              },
+              backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+              selectedColor: Theme.of(context).colorScheme.primaryContainer,
+              labelStyle: TextStyle(
+                color: isSelected
+                    ? Theme.of(context).colorScheme.onPrimaryContainer
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            );
+          }),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPrioritySelector() {
+    return PrioritySelector(
+      selectedPriority: _selectedPriority,
+      onPriorityChanged: (priority) {
+        setState(() {
+          _selectedPriority = priority;
+        });
+      },
+    );
+  }
+
+  Widget _buildReminderPicker() {
+    return ReminderTimePicker(
+      reminderType: _selectedReminderType,
+      onReminderTypeChanged: (type) {
+        setState(() {
+          _selectedReminderType = type;
+        });
+      },
+      reminderTime: _selectedReminderTime,
+      onReminderTimeChanged: (time) {
+        setState(() {
+          _selectedReminderTime = time;
+        });
+      },
+      specificReminderTime: _specificReminderTime,
+      onSpecificTimeChanged: (time) {
+        setState(() {
+          _specificReminderTime = time;
+        });
+      },
+    );
+  }
+
+  Widget _buildCategorySelector() {
+    return CategorySelector(
+      selectedCategoryId: _selectedCategoryId,
+      onCategorySelected: (categoryId) {
+        setState(() {
+          _selectedCategoryId = categoryId;
+        });
+      },
+      onColorSelected: (color) {
+        setState(() {
+          _selectedColor = color;
+        });
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -196,30 +309,19 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                HabitIconPicker(
-                  selectedIcon: _selectedIcon,
-                  onIconSelected: (icon) {
-                    setState(() => _selectedIcon = icon);
-                  },
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: HabitTextField(
-                    controller: _nameController,
-                    label: 'Habit Name',
-                    hint: 'Enter habit name',
-                    validator: (value) {
-                      if (value?.isEmpty ?? true) {
-                        return 'Please enter a habit name';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-              ],
+            // Replace existing icon picker with category selector
+            _buildCategorySelector(),
+            const SizedBox(height: 16),
+            HabitTextField(
+              controller: _nameController,
+              label: 'Habit Name',
+              hint: 'Enter habit name',
+              validator: (value) {
+                if (value?.isEmpty ?? true) {
+                  return 'Please enter a habit name';
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 16),
             HabitTextField(
@@ -250,7 +352,7 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
                     children: [
                       Icon(section.icon),
                       const SizedBox(width: 8),
-                      Text(section.displayText),
+                      Text(section.label),
                     ],
                   ),
                 );
@@ -327,6 +429,8 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
               ),
             ],
             const SizedBox(height: 16),
+            _buildDaySelector(),
+            const SizedBox(height: 16),
             // Target days picker
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -360,6 +464,10 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
                 ],
               ],
             ),
+            const SizedBox(height: 16),
+            _buildPrioritySelector(),
+            const SizedBox(height: 16),
+            _buildReminderPicker(),
           ],
         ),
       ),

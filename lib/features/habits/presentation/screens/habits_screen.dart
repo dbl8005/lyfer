@@ -14,6 +14,64 @@ class HabitsScreen extends ConsumerStatefulWidget {
 }
 
 class _HabitsScreenState extends ConsumerState<HabitsScreen> {
+  // Add a scroll controller
+  final ScrollController _scrollController = ScrollController();
+  // Current section indicator
+  late DaySection _currentSection;
+  // Map to store section positions
+  final Map<DaySection, GlobalKey> _sectionKeys = {
+    DaySection.morning: GlobalKey(),
+    DaySection.afternoon: GlobalKey(),
+    DaySection.evening: GlobalKey(),
+    DaySection.night: GlobalKey(),
+    DaySection.allDay: GlobalKey(),
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    _currentSection = _getCurrentDaySection();
+
+    // Schedule scroll after first render
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToCurrentSection();
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToCurrentSection() {
+    final currentKey = _sectionKeys[_currentSection];
+    if (currentKey?.currentContext != null) {
+      // Get the render box from the section key
+      final RenderBox renderBox =
+          currentKey!.currentContext!.findRenderObject() as RenderBox;
+      final position = renderBox.localToGlobal(Offset.zero);
+
+      // Scroll to the position with a small offset for better visibility
+      _scrollController.animateTo(
+        position.dy - 80, // Offset to show a bit above the section
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  // Get sections in chronological order (always the same)
+  List<DaySection> _getSectionOrder() {
+    return [
+      DaySection.morning,
+      DaySection.afternoon,
+      DaySection.evening,
+      DaySection.night,
+      DaySection.allDay,
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final habitsStream = ref.watch(habitServiceProvider).getHabits();
@@ -42,37 +100,41 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
 
         final habits = snapshot.data!;
 
-        // Determine current day section based on time of day
-        final currentDaySection = _getCurrentDaySection();
-
-        // Create sections list in order based on current time
-        final sectionOrder = _getSectionOrder(currentDaySection);
+        // Call it in your build method before returning the widget
+        if (snapshot.hasData) {
+          _checkHabitIcons(snapshot.data!);
+        }
 
         // Group habits by section
         final habitsBySection = _groupHabitsBySection(habits);
 
+        // Get sections in chronological order
+        final sectionOrder = _getSectionOrder();
+
         return SingleChildScrollView(
+          controller: _scrollController, // Add the scroll controller
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Build sections in the determined order
+                // Build sections in chronological order
                 for (int i = 0; i < sectionOrder.length; i++)
                   Column(
+                    key: _sectionKeys[sectionOrder[i]], // Add section key
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildHabitSection(
                         context: context,
                         section: sectionOrder[i],
                         habits: habitsBySection[sectionOrder[i]] ?? [],
-                        isCurrentSection: sectionOrder[i] == currentDaySection,
+                        isCurrentSection: sectionOrder[i] == _currentSection,
                       ),
                       Divider(
                         color: Theme.of(context)
                             .colorScheme
                             .outline
-                            .withValues(alpha: 0.3),
+                            .withOpacity(0.3),
                       ),
                     ],
                   ),
@@ -93,46 +155,12 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
     if (hour >= 5 && hour < 12) {
       return DaySection.morning;
     } else if (hour >= 12 && hour < 17) {
-      return DaySection.noon;
-    } else {
+      return DaySection.afternoon;
+    } else if (hour >= 17 && hour < 21) {
       return DaySection.evening;
+    } else {
+      return DaySection.night;
     }
-  }
-
-  // Get ordered sections with current section first and all day last
-  List<DaySection> _getSectionOrder(DaySection currentSection) {
-    List<DaySection> sections = [
-      DaySection.morning,
-      DaySection.noon,
-      DaySection.evening,
-    ];
-
-    if (currentSection == DaySection.morning) {
-      sections = [
-        DaySection.morning,
-        DaySection.noon,
-        DaySection.evening,
-        DaySection.allDay,
-      ];
-    }
-    if (currentSection == DaySection.noon) {
-      sections = [
-        DaySection.noon,
-        DaySection.evening,
-        DaySection.allDay,
-        DaySection.morning,
-      ];
-    }
-    if (currentSection == DaySection.evening) {
-      sections = [
-        DaySection.evening,
-        DaySection.allDay,
-        DaySection.morning,
-        DaySection.noon,
-      ];
-    }
-
-    return sections;
   }
 
   // Group habits by section
@@ -142,11 +170,14 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
       DaySection.morning: habits
           .where((habit) => habit.preferredTime == DaySection.morning)
           .toList(),
-      DaySection.noon: habits
-          .where((habit) => habit.preferredTime == DaySection.noon)
+      DaySection.afternoon: habits // Change from noon to afternoon
+          .where((habit) => habit.preferredTime == DaySection.afternoon)
           .toList(),
       DaySection.evening: habits
           .where((habit) => habit.preferredTime == DaySection.evening)
+          .toList(),
+      DaySection.night: habits
+          .where((habit) => habit.preferredTime == DaySection.night)
           .toList(),
       DaySection.allDay: habits
           .where((habit) => habit.preferredTime == DaySection.allDay)
@@ -210,7 +241,7 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
           ),
           const SizedBox(width: 12),
           Text(
-            section.displayText,
+            section.label,
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -255,7 +286,7 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
           ),
           child: Center(
             child: Text(
-              'No ${section.displayText.toLowerCase()} habits yet',
+              'No ${section.label.toLowerCase()} habits yet',
               style: TextStyle(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -284,5 +315,17 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
         );
       },
     );
+  }
+
+  // Add this to your HabitsScreen build method for debugging
+  void _checkHabitIcons(List<HabitModel> habits) {
+    for (final habit in habits) {
+      try {
+        final icon = habit.category.icon;
+        print('Habit ${habit.name} has valid icon: $icon');
+      } catch (e) {
+        print('ERROR: Habit ${habit.name} has invalid icon: $e');
+      }
+    }
   }
 }

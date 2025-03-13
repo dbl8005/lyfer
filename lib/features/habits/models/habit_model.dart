@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:lyfer/core/config/enums/habit_enums.dart';
+import 'package:lyfer/core/config/enums/habit_categories.dart';
 
 class HabitModel {
   final String? id;
   final String name;
-  final String icon;
+  final String categoryId; // Replaces icon
   final DateTime createdAt;
   final Color? color;
   final DaySection preferredTime;
@@ -20,14 +21,14 @@ class HabitModel {
   final DaySection? reminderTime;
   final TimeOfDay? specificReminderTime; // New: specific time for reminder
   final List<String>? tags;
-  final int? priority;
+  final Priority priority; // Updated to use Priority enum
   final Map<DateTime, String>? notes;
   final Set<int> selectedDays; // New: days of week (0 = Monday, 6 = Sunday)
 
   HabitModel({
     this.id,
     required this.name,
-    required this.icon, // Store as string instead of IconData
+    required this.categoryId, // Replace icon parameter with this
     DateTime? createdAt,
     this.color,
     required this.preferredTime,
@@ -42,7 +43,7 @@ class HabitModel {
     this.reminderTime,
     this.specificReminderTime,
     this.tags,
-    this.priority,
+    this.priority = Priority.none, // Updated to use Priority enum
     this.notes,
     Set<int>? selectedDays,
   })  : createdAt = createdAt ?? DateTime.now(),
@@ -55,7 +56,7 @@ class HabitModel {
   HabitModel copyWith({
     String? id,
     String? name,
-    String? iconName,
+    String? categoryId, // Replace iconName with this
     Color? color,
     DaySection? preferredTime,
     String? description,
@@ -69,14 +70,14 @@ class HabitModel {
     DaySection? reminderTime,
     TimeOfDay? specificReminderTime,
     List<String>? tags,
-    int? priority,
+    Priority? priority, // Updated to use Priority enum
     Map<DateTime, String>? notes,
     Set<int>? selectedDays,
   }) {
     return HabitModel(
       id: id ?? this.id,
       name: name ?? this.name,
-      icon: iconName ?? this.icon,
+      categoryId: categoryId ?? this.categoryId,
       createdAt: createdAt,
       color: color ?? this.color,
       preferredTime: preferredTime ?? this.preferredTime,
@@ -92,7 +93,7 @@ class HabitModel {
       reminderTime: reminderTime ?? this.reminderTime,
       specificReminderTime: specificReminderTime ?? this.specificReminderTime,
       tags: tags ?? this.tags,
-      priority: priority ?? this.priority,
+      priority: priority ?? this.priority, // Updated to use Priority enum
       notes: notes ?? this.notes,
       selectedDays: selectedDays ?? this.selectedDays,
     );
@@ -102,7 +103,7 @@ class HabitModel {
   Map<String, dynamic> toJson() {
     return {
       'name': name,
-      'iconName': icon,
+      'categoryId': categoryId, // Replace iconName with this
       'createdAt': Timestamp.fromDate(createdAt),
       'color': color?.value,
       'preferredTime': preferredTime.index,
@@ -123,7 +124,7 @@ class HabitModel {
             }
           : null,
       'tags': tags,
-      'priority': priority,
+      'priority': priority.index, // Updated to use Priority enum
       'notes': notes?.map(
         (key, value) => MapEntry(
           Timestamp.fromDate(key).toString(),
@@ -139,7 +140,7 @@ class HabitModel {
     return HabitModel(
       id: id,
       name: json['name'] as String,
-      icon: json['iconName'],
+      categoryId: json['categoryId'] ?? 'other', // Replace iconName with this
       createdAt: (json['createdAt'] as Timestamp).toDate(),
       color: json['color'] != null ? Color(json['color'] as int) : null,
       preferredTime: DaySection.values[json['preferredTime'] as int],
@@ -163,7 +164,9 @@ class HabitModel {
             )
           : null,
       tags: json['tags'] != null ? List<String>.from(json['tags']) : null,
-      priority: json['priority'] as int?,
+      priority: json['priority'] != null
+          ? Priority.values[json['priority'] as int]
+          : Priority.none, // Updated to use Priority enum
       notes: json['notes'] != null
           ? (json['notes'] as Map<String, dynamic>).map(
               (key, value) => MapEntry(
@@ -287,5 +290,30 @@ class HabitModel {
       );
       return normalizedDate.isAtSameMomentAs(targetDate);
     });
+  }
+
+  // Add helper getter for category
+  HabitCategory get category {
+    try {
+      return findCategoryById(categoryId) ??
+          habitCategories.firstWhere((c) => c.id == 'other');
+    } catch (e) {
+      // Fallback to ensure we always return a valid category
+      return HabitCategory(
+        id: 'other',
+        name: 'Other',
+        icon: Icons.star,
+        defaultColor: Colors.grey,
+      );
+    }
+  }
+
+  // Add a fallback icon getter in case category fails
+  IconData get iconData {
+    try {
+      return category.icon;
+    } catch (e) {
+      return Icons.star; // Fallback icon
+    }
   }
 }
