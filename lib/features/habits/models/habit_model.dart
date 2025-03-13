@@ -263,8 +263,20 @@ class HabitModel {
     }
   }
 
+  // Check if habit is scheduled for a specific day
+  bool isScheduledForDay(DateTime date) {
+    // Convert to weekday where Monday is 0, Sunday is 6
+    int dayOfWeek = (date.weekday - 1) % 7;
+    return selectedDays.contains(dayOfWeek);
+  }
+
   // Check if habit is completed for a specific day
   bool isCompletedForDay(DateTime date) {
+    // If this day isn't scheduled, it's automatically "completed"
+    if (!isScheduledForDay(date)) {
+      return true;
+    }
+
     final targetDate = DateTime(date.year, date.month, date.day);
 
     return completedDates.any((completionDate) {

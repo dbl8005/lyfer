@@ -4,6 +4,7 @@ import 'package:line_icons/line_icon.dart';
 import 'package:lyfer/core/config/enums/habit_enums.dart';
 import 'package:lyfer/core/config/enums/icon_enum.dart';
 import 'package:lyfer/features/habits/models/habit_model.dart';
+import 'package:lyfer/features/habits/presentation/widgets/day_selector.dart';
 import 'package:lyfer/features/habits/presentation/widgets/habit_color_picker.dart';
 import 'package:lyfer/features/habits/presentation/widgets/habit_text_field.dart';
 import 'package:lyfer/features/habits/services/habit_service.dart';
@@ -28,6 +29,7 @@ class _NewHabitScreenState extends ConsumerState<NewHabitScreen> {
   Frequency _selectedFrequency = Frequency.daily;
   int _timesPerPeriod = 1; // Default to 1 time per period
   int? _targetDays;
+  Set<int> _selectedDays = {0, 1, 2, 3, 4, 5, 6};
 
   bool _isLoading = false;
 
@@ -58,7 +60,8 @@ class _NewHabitScreenState extends ConsumerState<NewHabitScreen> {
         description: _descriptionController.text,
         targetDays: _targetDays,
         frequency: _selectedFrequency,
-        timesPerPeriod: _timesPerPeriod, // Add this line
+        timesPerPeriod: _timesPerPeriod,
+        selectedDays: _selectedDays,
       );
 
       await ref.read(habitServiceProvider).createHabit(habit);
@@ -149,6 +152,8 @@ class _NewHabitScreenState extends ConsumerState<NewHabitScreen> {
             _buildTimeSectionPicker(),
             const SizedBox(height: 16),
             _buildFrequencyPicker(),
+            const SizedBox(height: 16),
+            _buildDaySelector(),
             const SizedBox(height: 16),
             _buildTargetDaysPicker(),
           ],
@@ -252,6 +257,19 @@ class _NewHabitScreenState extends ConsumerState<NewHabitScreen> {
           ),
         ],
       ],
+    );
+  }
+
+  Widget _buildDaySelector() {
+    return DaySelector(
+      selectedDays: _selectedDays ??
+          (_selectedFrequency == Frequency.daily ? {0, 1, 2, 3, 4, 5, 6} : {}),
+      onDaysSelected: (days) {
+        setState(() {
+          _selectedDays = days;
+        });
+      },
+      dailyHabit: _selectedFrequency == Frequency.daily,
     );
   }
 
