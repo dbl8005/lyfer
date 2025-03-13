@@ -6,6 +6,7 @@ import 'package:line_icons/line_icons.dart';
 import 'package:lyfer/core/config/enums/habit_enums.dart';
 import 'package:lyfer/core/config/enums/icon_enum.dart';
 import 'package:lyfer/core/router/router.dart';
+import 'package:lyfer/core/utils/dialogs/confirm_dialog.dart';
 import 'package:lyfer/core/utils/snackbars/snackbar.dart';
 import 'package:lyfer/features/habits/models/habit_model.dart';
 import 'package:lyfer/features/habits/presentation/screens/edit_habit_screen.dart';
@@ -22,6 +23,7 @@ class HabitTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final habitService = ref.read(habitServiceProvider);
     // Check if habit is completed for the current period
     final isCompletedForPeriod = habit.isCompletedForCurrentPeriod();
 
@@ -113,14 +115,49 @@ class HabitTile extends ConsumerWidget {
               // Streak count container
               StreakCounter(currentStreak: currentStreak),
               const SizedBox(width: 8),
-              // Edit button
-              IconButton(
-                icon: const Icon(LineIcons.pen),
-                onPressed: () {
-                  // Navigate to edit screen
-                  context.push('${AppRouterConsts.habitEdit}/${habit.id}',
-                      extra: habit);
+              // pop up menu for more options
+
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert),
+                onSelected: (value) {
+                  switch (value) {
+                    case 'edit':
+                      context.push('${AppRouterConsts.habitEdit}/${habit.id}',
+                          extra: habit);
+                    case 'delete':
+                      ConfirmDialog.show(
+                        context: context,
+                        title: 'Delete Habit',
+                        content: 'Are you sure you want to delete this habit?',
+                        onConfirm: () {
+                          habitService.deleteHabit(habit.id!);
+                          Navigator.of(context).pop();
+                        },
+                      );
+                  }
                 },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'edit',
+                    child: Row(
+                      children: [
+                        Icon(LineIcons.pen),
+                        SizedBox(width: 8),
+                        Text('Edit'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Icon(LineIcons.trash),
+                        SizedBox(width: 8),
+                        Text('Delete'),
+                      ],
+                    ),
+                  ),
+                ],
               ),
               // Completion button
               IconButton(
@@ -194,19 +231,29 @@ class StreakCounter extends StatelessWidget {
       _ => Colors.grey
     };
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: streakColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        '${currentStreak} ${currentStreak == 1 ? 'day' : 'days'}',
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          color: Theme.of(context).colorScheme.onPrimaryContainer,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: streakColor,
+          borderRadius: BorderRadius.circular(12),
         ),
-      ),
-    );
+        child: Tooltip(
+          message: 'Streak',
+          child: Row(
+            children: [
+              Text(
+                '$currentStreak',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Icon(LineIcons.link,
+                  size: 16,
+                  color: Theme.of(context).colorScheme.onPrimaryContainer),
+            ],
+          ),
+        ));
   }
 }

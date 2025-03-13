@@ -63,15 +63,23 @@ class _NewNoteScreenState extends ConsumerState<NewNoteScreen> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
+          spacing: 8,
+          mainAxisSize: MainAxisSize.max,
           children: [
             TextField(
               controller: _titleController,
               decoration: const InputDecoration(labelText: 'Title'),
             ),
-            TextField(
-              controller: _textController,
-              decoration: const InputDecoration(labelText: 'Text'),
-              maxLines: 5,
+            Expanded(
+              child: TextField(
+                controller: _textController,
+                decoration: const InputDecoration(
+                    hintText: 'Write your note here...',
+                    alignLabelWithHint: true),
+                maxLines: null,
+                expands: true,
+                keyboardType: TextInputType.multiline,
+              ),
             ),
             TextField(
               controller: _tagsController,
@@ -86,6 +94,7 @@ class _NewNoteScreenState extends ConsumerState<NewNoteScreen> {
                 },
               ),
             ),
+            const SizedBox(height: 16),
           ],
         ),
       ),

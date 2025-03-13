@@ -86,24 +86,26 @@ class _NoteScreenState extends ConsumerState<NoteScreen> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
+          spacing: 8,
           children: [
             TextField(
               controller: _titleController,
               decoration: const InputDecoration(labelText: 'Title'),
             ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _textController,
-              decoration: const InputDecoration(labelText: 'Text'),
-              maxLines: 5,
+            Expanded(
+              child: TextField(
+                controller: _textController,
+                decoration: const InputDecoration(labelText: 'Text'),
+                maxLines: null,
+                expands: true,
+                keyboardType: TextInputType.multiline,
+              ),
             ),
-            const SizedBox(height: 16),
             TextField(
               controller: _tagsController,
               decoration:
                   const InputDecoration(labelText: 'Tags (comma separated)'),
             ),
-            const SizedBox(height: 16),
             HabitColorPicker(
               selectedColor: _selectedColor,
               onColorChanged: (value) {
@@ -113,6 +115,7 @@ class _NoteScreenState extends ConsumerState<NoteScreen> {
                 _autoSave();
               },
             ),
+            const SizedBox(height: 16),
           ],
         ),
       ),
