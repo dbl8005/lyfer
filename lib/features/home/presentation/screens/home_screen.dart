@@ -38,10 +38,17 @@ class HomeScreen extends ConsumerWidget {
       shape: const CircleBorder(),
     );
 
+    final String appBarText = [
+      'Dashboard',
+      'Habits',
+      'Tasks',
+      'Settings',
+    ][currentIndex];
+
     return Scaffold(
       extendBody: true, // Make body extend behind the navigation bar
       appBar: AppBar(
-        title: const Text('Home'),
+        title: Text(appBarText),
       ),
       body: IndexedStack(
         index: currentIndex,
