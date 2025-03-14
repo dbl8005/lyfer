@@ -4,15 +4,15 @@ import 'package:line_icons/line_icon.dart';
 import 'package:lyfer/core/config/enums/habit_enums.dart';
 import 'package:lyfer/core/config/enums/icon_enum.dart';
 import 'package:lyfer/features/habits/models/habit_model.dart';
-import 'package:lyfer/features/habits/presentation/widgets/day_selector.dart';
-import 'package:lyfer/features/habits/presentation/widgets/habit_color_picker.dart';
-import 'package:lyfer/features/habits/presentation/widgets/habit_text_field.dart';
+import 'package:lyfer/features/habits/presentation/widgets/form/day_selector.dart';
+import 'package:lyfer/features/habits/presentation/widgets/form/habit_color_picker.dart';
+import 'package:lyfer/features/habits/presentation/widgets/form/habit_text_field.dart';
 import 'package:lyfer/features/habits/services/habit_service.dart';
 import 'package:line_icons/line_icons.dart';
-import 'package:lyfer/features/habits/presentation/widgets/habit_icon_picker.dart';
-import 'package:lyfer/features/habits/presentation/widgets/priority_selector.dart';
-import 'package:lyfer/features/habits/presentation/widgets/reminder_time_picker.dart';
-import 'package:lyfer/features/habits/presentation/widgets/category_selector.dart';
+import 'package:lyfer/features/habits/presentation/widgets/form/habit_icon_picker.dart';
+import 'package:lyfer/features/habits/presentation/widgets/form/priority_selector.dart';
+import 'package:lyfer/features/habits/presentation/widgets/form/reminder_time_picker.dart';
+import 'package:lyfer/features/habits/presentation/widgets/form/category_selector.dart';
 import 'package:lyfer/core/config/enums/habit_categories.dart';
 
 class NewHabitScreen extends ConsumerStatefulWidget {

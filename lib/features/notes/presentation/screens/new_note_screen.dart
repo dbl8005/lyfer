@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lyfer/core/utils/snackbars/snackbar.dart';
 import 'package:lyfer/core/widgets/circular_pi.dart';
-import 'package:lyfer/features/habits/presentation/widgets/habit_color_picker.dart';
+import 'package:lyfer/features/habits/presentation/widgets/form/habit_color_picker.dart';
 import 'package:lyfer/features/notes/models/note_model.dart';
 import 'package:lyfer/features/notes/services/note_service.dart';
 

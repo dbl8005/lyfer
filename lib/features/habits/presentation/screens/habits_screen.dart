@@ -1,42 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:line_icons/line_icon.dart';
+import 'package:lyfer/core/config/constants/habit_constants.dart';
 import 'package:lyfer/core/config/enums/habit_enums.dart';
-import 'package:lyfer/features/habits/models/habit_model.dart';
-import 'package:lyfer/features/habits/presentation/widgets/habit_tile.dart';
-import 'package:lyfer/features/habits/services/habit_service.dart';
-import 'package:intl/intl.dart';
+import 'package:lyfer/core/router/router.dart';
+import 'package:lyfer/core/widgets/error_display.dart';
+import 'package:lyfer/features/habits/presentation/widgets/empty_states/empty_habits_view.dart';
+import 'package:lyfer/features/habits/presentation/widgets/habits_content.dart';
+import 'package:lyfer/features/habits/providers/habits_provider.dart';
 
+/// The main habits screen that displays habits organized by time of day
+/// with navigation controls for different dates
 class HabitsScreen extends ConsumerStatefulWidget {
   const HabitsScreen({super.key});
 
   @override
-  ConsumerState<ConsumerStatefulWidget> createState() => _HabitsScreenState();
+  ConsumerState<HabitsScreen> createState() => _HabitsScreenState();
 }
 
 class _HabitsScreenState extends ConsumerState<HabitsScreen> {
-  // Add a scroll controller
   final ScrollController _scrollController = ScrollController();
-  // Current section indicator
-  late DaySection _currentSection;
-  // Map to store section positions
   final Map<DaySection, GlobalKey> _sectionKeys = {
-    DaySection.morning: GlobalKey(),
-    DaySection.afternoon: GlobalKey(),
-    DaySection.evening: GlobalKey(),
-    DaySection.night: GlobalKey(),
-    DaySection.allDay: GlobalKey(),
+    for (var section in HabitsConstants.sectionOrder) section: GlobalKey(),
   };
-
-  // Add to _HabitsScreenState class
-  DateTime _selectedDate = DateTime.now();
-  final DateTime _today = DateTime.now();
 
   @override
   void initState() {
     super.initState();
-    _currentSection = _getCurrentDaySection();
-
     // Schedule scroll after first render
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollToCurrentSection();
@@ -49,386 +38,55 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
     super.dispose();
   }
 
+  /// Scrolls to the current time section for better user experience
   void _scrollToCurrentSection() {
-    final currentKey = _sectionKeys[_currentSection];
+    final currentSection = ref.read(currentSectionProvider);
+    final currentKey = _sectionKeys[currentSection];
+
     if (currentKey?.currentContext != null) {
-      // Get the render box from the section key
       final RenderBox renderBox =
           currentKey!.currentContext!.findRenderObject() as RenderBox;
       final position = renderBox.localToGlobal(Offset.zero);
 
-      // Scroll to the position with a small offset for better visibility
       _scrollController.animateTo(
-        position.dy - 80, // Offset to show a bit above the section
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeInOut,
+        position.dy - HabitsConstants.sectionScrollOffset,
+        duration: HabitsConstants.scrollAnimationDuration,
+        curve: HabitsConstants.scrollAnimationCurve,
       );
     }
   }
 
-  // Get sections in chronological order (always the same)
-  List<DaySection> _getSectionOrder() {
-    return [
-      DaySection.morning,
-      DaySection.afternoon,
-      DaySection.evening,
-      DaySection.night,
-      DaySection.allDay,
-    ];
+  /// Navigates to the habit creation screen
+  void _navigateToCreateHabit() {
+    Navigator.of(context).pushNamed(AppRouterConsts.newHabit);
   }
 
   @override
   Widget build(BuildContext context) {
-    final habitsStream = ref.watch(habitServiceProvider).getHabits();
+    final habitsAsyncValue = ref.watch(habitsStreamProvider);
 
-    return StreamBuilder<List<HabitModel>>(
-      stream: habitsStream,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        }
-
-        if (snapshot.hasError) {
-          return Center(
-            child: Text(
-              'Error: ${snapshot.error}',
-              style: const TextStyle(color: Colors.red),
-            ),
-          );
-        }
-
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return _buildEmptyState();
-        }
-
-        final habits = snapshot.data!;
-
-        // Call it in your build method before returning the widget
-        if (snapshot.hasData) {
-          _checkHabitIcons(snapshot.data!);
-        }
-
-        // Group habits by section
-        final habitsBySection = _groupHabitsBySection(habits);
-
-        // Get sections in chronological order
-        final sectionOrder = _getSectionOrder();
-
-        return SingleChildScrollView(
-          controller: _scrollController, // Add the scroll controller
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildDaySelector(), // Add the day selector
-                // Build sections in chronological order
-                for (int i = 0; i < sectionOrder.length; i++)
-                  Column(
-                    key: _sectionKeys[sectionOrder[i]], // Add section key
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildHabitSection(
-                        context: context,
-                        section: sectionOrder[i],
-                        habits: habitsBySection[sectionOrder[i]] ?? [],
-                        isCurrentSection: sectionOrder[i] == _currentSection,
-                      ),
-                      Divider(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .outline
-                            .withOpacity(0.3),
-                      ),
-                    ],
-                  ),
-                const SizedBox(height: 130), // Bottom padding
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  // Get current day section based on time
-  DaySection _getCurrentDaySection() {
-    final now = TimeOfDay.now();
-    final hour = now.hour;
-
-    if (hour >= 5 && hour < 12) {
-      return DaySection.morning;
-    } else if (hour >= 12 && hour < 17) {
-      return DaySection.afternoon;
-    } else if (hour >= 17 && hour < 21) {
-      return DaySection.evening;
-    } else {
-      return DaySection.night;
-    }
-  }
-
-  // Group habits by section
-  Map<DaySection, List<HabitModel>> _groupHabitsBySection(
-      List<HabitModel> habits) {
-    return {
-      DaySection.morning: habits
-          .where((habit) => habit.preferredTime == DaySection.morning)
-          .toList(),
-      DaySection.afternoon: habits // Change from noon to afternoon
-          .where((habit) => habit.preferredTime == DaySection.afternoon)
-          .toList(),
-      DaySection.evening: habits
-          .where((habit) => habit.preferredTime == DaySection.evening)
-          .toList(),
-      DaySection.night: habits
-          .where((habit) => habit.preferredTime == DaySection.night)
-          .toList(),
-      DaySection.allDay: habits
-          .where((habit) => habit.preferredTime == DaySection.allDay)
-          .toList(),
-    };
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Text(
-            'No habits yet',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHabitSection({
-    required BuildContext context,
-    required DaySection section,
-    required List<HabitModel> habits,
-    bool isCurrentSection = false,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionHeader(context, section, isCurrentSection),
-        const SizedBox(height: 12),
-        habits.isEmpty
-            ? _buildEmptySectionMessage(section)
-            : _buildHabitsList(habits),
-      ],
-    );
-  }
-
-  Widget _buildSectionHeader(
-      BuildContext context, DaySection section, bool isCurrentSection) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: isCurrentSection
-            ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.5)
-            : Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.4),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          LineIcon(
-            section.icon,
-            size: 28,
-            color: isCurrentSection
-                ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).colorScheme.primary.withOpacity(0.8),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            section.label,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
-          ),
-          if (isCurrentSection) ...[
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                'Now',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEmptySectionMessage(DaySection section) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(16),
-          margin: const EdgeInsets.only(top: 8),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
-            ),
-          ),
-          child: Center(
-            child: Text(
-              'No ${section.label.toLowerCase()} habits yet',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
+    return Semantics(
+      label: 'Habits screen',
+      child: habitsAsyncValue.when(
+        loading: () => const Center(
+          child: CircularProgressIndicator(
+            semanticsLabel: 'Loading habits',
           ),
         ),
-        const SizedBox(height: 12),
-      ],
-    );
-  }
+        error: (error, stack) => ErrorDisplay(
+          errorMessage: 'Failed to load habits: $error',
+          onRetry: () => ref.refresh(habitsStreamProvider),
+        ),
+        data: (habits) {
+          if (habits.isEmpty) {
+            return EmptyHabitsView(onCreateHabit: _navigateToCreateHabit);
+          }
 
-  Widget _buildHabitsList(List<HabitModel> habits) {
-    return ListView.builder(
-      physics: const NeverScrollableScrollPhysics(),
-      shrinkWrap: true,
-      itemCount: habits.length,
-      padding: EdgeInsets.zero,
-      itemBuilder: (context, index) {
-        final habit = habits[index];
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: HabitTile(
-            habit: habit,
-            selectedDate: _selectedDate, // Pass the selected date
-          ),
-        );
-      },
-    );
-  }
-
-  // Add this to your HabitsScreen build method for debugging
-  void _checkHabitIcons(List<HabitModel> habits) {
-    for (final habit in habits) {
-      try {
-        final icon = habit.category.icon;
-        print('Habit ${habit.name} has valid icon: $icon');
-      } catch (e) {
-        print('ERROR: Habit ${habit.name} has invalid icon: $e');
-      }
-    }
-  }
-
-  // Add these helper methods
-  void _goToPreviousDay() {
-    setState(() {
-      _selectedDate = _selectedDate.subtract(const Duration(days: 1));
-    });
-  }
-
-  void _goToNextDay() {
-    if (_selectedDate.year == _today.year &&
-        _selectedDate.month == _today.month &&
-        _selectedDate.day == _today.day) {
-      return; // Don't go into the future
-    }
-    setState(() {
-      _selectedDate = _selectedDate.add(const Duration(days: 1));
-    });
-  }
-
-  bool get _isToday =>
-      _selectedDate.year == _today.year &&
-      _selectedDate.month == _today.month &&
-      _selectedDate.day == _today.day;
-
-  Widget _buildDaySelector() {
-    final formatter = DateFormat('EEEE, MMMM d'); // Monday, January 15
-    final shortFormatter = DateFormat('EEE, MMM d'); // Mon, Jan 15
-
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          // Previous day button
-          IconButton(
-            icon: Icon(Icons.chevron_left),
-            onPressed: _goToPreviousDay,
-            tooltip: 'Previous day',
-          ),
-
-          // Date display with Today indicator if applicable
-          Expanded(
-            child: Center(
-              child: Column(
-                children: [
-                  Text(
-                    MediaQuery.of(context).size.width > 360
-                        ? formatter.format(_selectedDate)
-                        : shortFormatter.format(_selectedDate),
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  if (_isToday)
-                    Text(
-                      'Today',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                  if (!_isToday)
-                    GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _selectedDate = _today;
-                        });
-                      },
-                      child: Text(
-                        'Go to today',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
-
-          // Next day button (disabled when on current day)
-          IconButton(
-            icon: Icon(Icons.chevron_right),
-            onPressed: _isToday ? null : _goToNextDay,
-            tooltip: 'Next day',
-            color: _isToday
-                ? Theme.of(context).colorScheme.onSurface.withOpacity(0.5)
-                : Theme.of(context).colorScheme.primary,
-          ),
-        ],
+          return HabitsContent(
+            scrollController: _scrollController,
+            sectionKeys: _sectionKeys,
+          );
+        },
       ),
     );
   }

@@ -10,6 +10,8 @@ import 'package:lyfer/core/utils/dialogs/confirm_dialog.dart';
 import 'package:lyfer/core/utils/snackbars/snackbar.dart';
 import 'package:lyfer/features/habits/models/habit_model.dart';
 import 'package:lyfer/features/habits/presentation/screens/edit_habit_screen.dart';
+import 'package:lyfer/features/habits/presentation/widgets/display/active_days_indicator.dart';
+import 'package:lyfer/features/habits/presentation/widgets/display/streak_counter.dart';
 import 'package:lyfer/features/habits/services/habit_service.dart';
 import 'package:lyfer/core/utils/helpers/streak_calculator.dart';
 import 'package:lyfer/core/config/enums/habit_categories.dart';
@@ -78,9 +80,27 @@ class HabitTile extends ConsumerWidget {
         ),
         title: Row(
           children: [
-            Text(habit.name),
-            const SizedBox(width: 8),
-            _buildPriorityIndicator(context),
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: habit.priority.getColor(context).withOpacity(0.2),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Icon(
+                habit.priority.icon,
+                size: 16,
+                color: habit.priority.getColor(context),
+              ),
+            ),
+            const SizedBox(width: 4),
+            Expanded(
+              child: Text(
+                habit.name,
+                style: Theme.of(context).textTheme.titleMedium,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ),
           ],
         ),
         subtitle: Column(
@@ -88,8 +108,9 @@ class HabitTile extends ConsumerWidget {
           children: [
             if (habit.description.isNotEmpty)
               Text(
+                style: Theme.of(context).textTheme.bodySmall,
                 habit.description,
-                maxLines: 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
             if (habit.frequency != Frequency.daily)
@@ -119,16 +140,23 @@ class HabitTile extends ConsumerWidget {
                   ),
                 ],
               ),
-            if (habit.selectedDays.length > 0 && habit.selectedDays.length < 7)
-              _buildActivedays(context),
+            if (habit.selectedDays.isNotEmpty && habit.selectedDays.length < 7)
+              ActiveDaysIndicator(
+                selectedDays: habit.selectedDays.toList(),
+                frequency: habit.frequency,
+              ),
           ],
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             // Streak count container
-            StreakCounter(currentStreak: currentStreak),
-            const SizedBox(width: 8),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                StreakCounter(currentStreak: currentStreak),
+              ],
+            ),
             // pop up menu for more options
 
             PopupMenuButton<String>(
@@ -243,105 +271,5 @@ class HabitTile extends ConsumerWidget {
         ),
       ),
     );
-  }
-
-  Widget _buildActivedays(BuildContext context) {
-    if (habit.selectedDays.isEmpty ||
-        (habit.frequency == Frequency.daily &&
-            habit.selectedDays.length == 7)) {
-      return const SizedBox.shrink();
-    }
-
-    const dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 4.0),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.calendar_today_outlined,
-            size: 12,
-            color: Theme.of(context).colorScheme.secondary.withOpacity(0.7),
-          ),
-          const SizedBox(width: 4),
-          ...List.generate(7, (index) {
-            final isSelected = habit.selectedDays.contains(index);
-            return Container(
-              width: 14,
-              height: 14,
-              margin: const EdgeInsets.symmetric(horizontal: 1),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isSelected
-                    ? Theme.of(context).colorScheme.primaryContainer
-                    : Theme.of(context).colorScheme.surfaceVariant,
-              ),
-              child: Center(
-                child: Text(
-                  dayLabels[index],
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: isSelected
-                        ? Theme.of(context).colorScheme.onPrimaryContainer
-                        : Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            );
-          }),
-        ],
-      ),
-    );
-  }
-}
-
-class StreakCounter extends StatelessWidget {
-  const StreakCounter({
-    super.key,
-    required this.currentStreak,
-  });
-
-  final int currentStreak;
-
-  @override
-  Widget build(BuildContext context) {
-    final streakColor = switch (currentStreak) {
-      0 => Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
-      < 5 => Colors.red.shade300,
-      < 10 => Colors.red.shade400,
-      < 20 => Colors.red.shade500,
-      < 30 => Colors.red.shade600,
-      < 50 => Colors.red.shade700,
-      < 100 => Colors.red.shade800,
-      >= 100 => Colors.red.shade900,
-      _ => Colors.grey
-    };
-    return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: streakColor,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Tooltip(
-          message: 'Streak',
-          child: Row(
-            children: [
-              Text(
-                '$currentStreak',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
-                ),
-              ),
-              const SizedBox(width: 4),
-              Icon(LineIcons.link,
-                  size: 16,
-                  color: Theme.of(context).colorScheme.onPrimaryContainer),
-            ],
-          ),
-        ));
   }
 }

@@ -6,11 +6,11 @@ import 'package:lyfer/core/config/enums/habit_enums.dart';
 import 'package:lyfer/core/config/enums/icon_enum.dart';
 import 'package:lyfer/core/utils/snackbars/snackbar.dart';
 import 'package:lyfer/features/habits/models/habit_model.dart';
-import 'package:lyfer/features/habits/presentation/widgets/category_selector.dart';
-import 'package:lyfer/features/habits/presentation/widgets/habit_color_picker.dart';
-import 'package:lyfer/features/habits/presentation/widgets/habit_text_field.dart';
-import 'package:lyfer/features/habits/presentation/widgets/priority_selector.dart';
-import 'package:lyfer/features/habits/presentation/widgets/reminder_time_picker.dart';
+import 'package:lyfer/features/habits/presentation/widgets/form/category_selector.dart';
+import 'package:lyfer/features/habits/presentation/widgets/form/habit_color_picker.dart';
+import 'package:lyfer/features/habits/presentation/widgets/form/habit_text_field.dart';
+import 'package:lyfer/features/habits/presentation/widgets/form/priority_selector.dart';
+import 'package:lyfer/features/habits/presentation/widgets/form/reminder_time_picker.dart';
 import 'package:lyfer/features/habits/services/habit_service.dart';
 
 class EditHabitScreen extends ConsumerStatefulWidget {
