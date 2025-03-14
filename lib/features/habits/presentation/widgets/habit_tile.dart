@@ -18,18 +18,27 @@ class HabitTile extends ConsumerWidget {
   const HabitTile({
     super.key,
     required this.habit,
+    required this.selectedDate,
   });
 
   final HabitModel habit;
+  final DateTime selectedDate;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final habitService = ref.read(habitServiceProvider);
+
     // Check if habit is completed for the current period
     final isCompletedForPeriod = habit.isCompletedForCurrentPeriod();
 
-    // Check if habit is completed specifically for today
-    final isCompletedToday = habit.isCompletedForDay(DateTime.now());
+    // Check if habit is completed specifically for the selected date
+    final isCompletedForDate = habit.isCompletedForDay(selectedDate);
+
+    // Check if selected date is today
+    final today = DateTime.now();
+    final isToday = selectedDate.year == today.year &&
+        selectedDate.month == today.month &&
+        selectedDate.day == today.day;
 
     // Get number of completions in this period
     final completionsThisPeriod = habit.getCompletionsInCurrentPeriod();
@@ -38,181 +47,176 @@ class HabitTile extends ConsumerWidget {
     final currentStreak = StreakCalculator.calculateStreak(
         habit.completedDates.toList(), habit.frequency, habit.timesPerPeriod);
 
-    return Opacity(
-      opacity: isCompletedForPeriod ? 0.5 : 1,
-      child: Card(
-        color: isCompletedToday
-            ? Theme.of(context).colorScheme.primaryContainer.withAlpha(50)
-            : Theme.of(context).colorScheme.surface,
-        margin: EdgeInsets.zero, // Remove default card margin
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(
-            color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+    return Card(
+      color: isCompletedForDate
+          ? Theme.of(context).colorScheme.primaryContainer.withAlpha(50)
+          : Theme.of(context).colorScheme.surface,
+      margin: EdgeInsets.zero, // Remove default card margin
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+        ),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: habit.color ?? habit.category.defaultColor,
+              width: 2,
+            ),
+            shape: BoxShape.circle,
+          ),
+          child: LineIcon(
+            habit.category.icon,
+            size: 24,
+            color: habit.color ?? habit.category.defaultColor,
           ),
         ),
-        child: ListTile(
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-          leading: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: habit.color ?? habit.category.defaultColor,
-                width: 2,
+        title: Row(
+          children: [
+            Text(habit.name),
+            const SizedBox(width: 8),
+            _buildPriorityIndicator(context),
+          ],
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (habit.description.isNotEmpty)
+              Text(
+                habit.description,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              shape: BoxShape.circle,
-            ),
-            child: LineIcon(
-              habit.category.icon,
-              size: 24,
-              color: habit.color ?? habit.category.defaultColor,
-            ),
-          ),
-          title: Row(
-            children: [
-              Text(habit.name),
-              const SizedBox(width: 8),
-              _buildPriorityIndicator(context),
-            ],
-          ),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (habit.description.isNotEmpty)
-                Text(
-                  habit.description,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              if (habit.frequency != Frequency.daily)
-                Row(
-                  children: [
-                    Text(
-                      '${completionsThisPeriod}/${habit.timesPerPeriod} this ${habit.periodLabel}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: LinearProgressIndicator(
-                        value: completionsThisPeriod / habit.timesPerPeriod,
-                        backgroundColor:
-                            Theme.of(context).colorScheme.surfaceVariant,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          isCompletedForPeriod
-                              ? Colors.green
-                              : Theme.of(context).colorScheme.primary,
-                        ),
-                        minHeight: 5,
-                      ),
-                    ),
-                  ],
-                ),
-              if (habit.selectedDays.length > 0 &&
-                  habit.selectedDays.length < 7)
-                _buildActivedays(context),
-            ],
-          ),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Streak count container
-              StreakCounter(currentStreak: currentStreak),
-              const SizedBox(width: 8),
-              // pop up menu for more options
-
-              PopupMenuButton<String>(
-                icon: const Icon(Icons.more_vert),
-                onSelected: (value) {
-                  switch (value) {
-                    case 'edit':
-                      context.push('${AppRouterConsts.habitEdit}/${habit.id}',
-                          extra: habit);
-                    case 'delete':
-                      ConfirmDialog.show(
-                        context: context,
-                        title: 'Delete Habit',
-                        content: 'Are you sure you want to delete this habit?',
-                        onConfirm: () {
-                          habitService.deleteHabit(habit.id!);
-                          Navigator.of(context).pop();
-                        },
-                      );
-                  }
-                },
-                itemBuilder: (context) => [
-                  const PopupMenuItem(
-                    value: 'edit',
-                    child: Row(
-                      children: [
-                        Icon(LineIcons.pen),
-                        SizedBox(width: 8),
-                        Text('Edit'),
-                      ],
+            if (habit.frequency != Frequency.daily)
+              Row(
+                children: [
+                  Text(
+                    '${completionsThisPeriod}/${habit.timesPerPeriod} this ${habit.periodLabel}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  const PopupMenuItem(
-                    value: 'delete',
-                    child: Row(
-                      children: [
-                        Icon(LineIcons.trash),
-                        SizedBox(width: 8),
-                        Text('Delete'),
-                      ],
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: LinearProgressIndicator(
+                      value: completionsThisPeriod / habit.timesPerPeriod,
+                      backgroundColor:
+                          Theme.of(context).colorScheme.surfaceVariant,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        isCompletedForPeriod
+                            ? Colors.green
+                            : Theme.of(context).colorScheme.primary,
+                      ),
+                      minHeight: 5,
                     ),
                   ),
                 ],
               ),
-              // Completion button
-              IconButton(
-                icon: Icon(
-                  isCompletedToday ? Icons.check_circle : Icons.circle_outlined,
-                  color: isCompletedToday ? Colors.green : Colors.grey,
-                ),
-                onPressed: () {
-                  // Call the service to toggle habit completion
-                  final habitService = ref.read(habitServiceProvider);
-                  habitService.toggleHabitCompletion(habit.id!, DateTime.now());
-
-                  // Show feedback with snackbar
-                  String message;
-                  if (habit.frequency == Frequency.daily) {
-                    message = isCompletedToday
-                        ? 'Habit marked as incomplete'
-                        : 'Habit completed for today!';
-                  } else {
-                    final remainingCompletions =
-                        habit.timesPerPeriod - completionsThisPeriod;
-                    message = isCompletedToday
-                        ? 'Removed completion for today'
-                        : remainingCompletions <= 0
-                            ? 'Goal reached for this ${habit.periodLabel}!'
-                            : '${remainingCompletions - 1} more to go this ${habit.periodLabel}';
-                  }
-
-                  AppSnackbar.show(
-                    context: context,
-                    message: message,
-                    backgroundColor:
-                        isCompletedToday ? Colors.red : Colors.green,
-                  );
-                },
-              ),
-            ],
-          ),
-          onTap: () {
-            // Navigate to habit details
-            context.push(
-              '${AppRouterConsts.habitDetails}/${habit.id}',
-              extra: habit,
-            );
-          },
+            if (habit.selectedDays.length > 0 && habit.selectedDays.length < 7)
+              _buildActivedays(context),
+          ],
         ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Streak count container
+            StreakCounter(currentStreak: currentStreak),
+            const SizedBox(width: 8),
+            // pop up menu for more options
+
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert),
+              onSelected: (value) {
+                switch (value) {
+                  case 'edit':
+                    context.push('${AppRouterConsts.habitEdit}/${habit.id}',
+                        extra: habit);
+                  case 'delete':
+                    ConfirmDialog.show(
+                      context: context,
+                      title: 'Delete Habit',
+                      content: 'Are you sure you want to delete this habit?',
+                      onConfirm: () {
+                        habitService.deleteHabit(habit.id!);
+                        Navigator.of(context).pop();
+                      },
+                    );
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'edit',
+                  child: Row(
+                    children: [
+                      Icon(LineIcons.pen),
+                      SizedBox(width: 8),
+                      Text('Edit'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      Icon(LineIcons.trash),
+                      SizedBox(width: 8),
+                      Text('Delete'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            // Completion button
+            IconButton(
+              icon: Icon(
+                isCompletedForDate ? Icons.check_circle : Icons.circle_outlined,
+                color: isCompletedForDate ? Colors.green : Colors.grey,
+              ),
+              onPressed: () {
+                // Call the service to toggle habit completion
+                final habitService = ref.read(habitServiceProvider);
+                habitService.toggleHabitCompletion(habit.id!, selectedDate);
+
+                // Show feedback with snackbar
+                String message;
+                if (habit.frequency == Frequency.daily) {
+                  message = isCompletedForDate
+                      ? 'Habit marked as incomplete'
+                      : 'Habit completed for today!';
+                } else {
+                  final remainingCompletions =
+                      habit.timesPerPeriod - completionsThisPeriod;
+                  message = isCompletedForDate
+                      ? 'Removed completion for today'
+                      : remainingCompletions <= 0
+                          ? 'Goal reached for this ${habit.periodLabel}!'
+                          : '${remainingCompletions - 1} more to go this ${habit.periodLabel}';
+                }
+
+                AppSnackbar.show(
+                  context: context,
+                  message: message,
+                  backgroundColor:
+                      isCompletedForDate ? Colors.red : Colors.green,
+                );
+              },
+            ),
+          ],
+        ),
+        onTap: () {
+          // Navigate to habit details
+          context.push(
+            '${AppRouterConsts.habitDetails}/${habit.id}',
+            extra: habit,
+          );
+        },
       ),
     );
   }

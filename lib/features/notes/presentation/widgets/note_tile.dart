@@ -22,9 +22,9 @@ class NoteTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Card(
-      color: //TODO Make the color with opacity
-
-          note.color != null ? Color(int.parse(note.color!, radix: 16)) : null,
+      color: note.color != null
+          ? Color(int.parse(note.color!, radix: 16)).withAlpha(200)
+          : null,
       child: ListTile(
         title: Row(
           children: [

@@ -86,26 +86,36 @@ class _NoteScreenState extends ConsumerState<NoteScreen> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          spacing: 8,
           children: [
             TextField(
               controller: _titleController,
               decoration: const InputDecoration(labelText: 'Title'),
             ),
+            const SizedBox(height: 8),
             Expanded(
               child: TextField(
                 controller: _textController,
-                decoration: const InputDecoration(labelText: 'Text'),
+                decoration: const InputDecoration(
+                  hintText: 'Write your note here...',
+                  alignLabelWithHint: true,
+                  border: OutlineInputBorder(), // Add a visible border
+                  contentPadding:
+                      EdgeInsets.all(16), // Add padding inside the field
+                ),
                 maxLines: null,
                 expands: true,
+                textAlignVertical:
+                    TextAlignVertical.top, // This is the key property
                 keyboardType: TextInputType.multiline,
               ),
             ),
+            const SizedBox(height: 8),
             TextField(
               controller: _tagsController,
               decoration:
                   const InputDecoration(labelText: 'Tags (comma separated)'),
             ),
+            const SizedBox(height: 8),
             HabitColorPicker(
               selectedColor: _selectedColor,
               onColorChanged: (value) {

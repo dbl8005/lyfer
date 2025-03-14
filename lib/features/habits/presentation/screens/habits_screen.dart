@@ -5,6 +5,7 @@ import 'package:lyfer/core/config/enums/habit_enums.dart';
 import 'package:lyfer/features/habits/models/habit_model.dart';
 import 'package:lyfer/features/habits/presentation/widgets/habit_tile.dart';
 import 'package:lyfer/features/habits/services/habit_service.dart';
+import 'package:intl/intl.dart';
 
 class HabitsScreen extends ConsumerStatefulWidget {
   const HabitsScreen({super.key});
@@ -26,6 +27,10 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
     DaySection.night: GlobalKey(),
     DaySection.allDay: GlobalKey(),
   };
+
+  // Add to _HabitsScreenState class
+  DateTime _selectedDate = DateTime.now();
+  final DateTime _today = DateTime.now();
 
   @override
   void initState() {
@@ -118,6 +123,7 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                _buildDaySelector(), // Add the day selector
                 // Build sections in chronological order
                 for (int i = 0; i < sectionOrder.length; i++)
                   Column(
@@ -303,15 +309,15 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
       physics: const NeverScrollableScrollPhysics(),
       shrinkWrap: true,
       itemCount: habits.length,
-      padding: EdgeInsets.symmetric(
-        vertical: 0,
-        horizontal: 0,
-      ),
+      padding: EdgeInsets.zero,
       itemBuilder: (context, index) {
         final habit = habits[index];
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 4),
-          child: HabitTile(habit: habit),
+          child: HabitTile(
+            habit: habit,
+            selectedDate: _selectedDate, // Pass the selected date
+          ),
         );
       },
     );
@@ -327,5 +333,103 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
         print('ERROR: Habit ${habit.name} has invalid icon: $e');
       }
     }
+  }
+
+  // Add these helper methods
+  void _goToPreviousDay() {
+    setState(() {
+      _selectedDate = _selectedDate.subtract(const Duration(days: 1));
+    });
+  }
+
+  void _goToNextDay() {
+    if (_selectedDate.year == _today.year &&
+        _selectedDate.month == _today.month &&
+        _selectedDate.day == _today.day) {
+      return; // Don't go into the future
+    }
+    setState(() {
+      _selectedDate = _selectedDate.add(const Duration(days: 1));
+    });
+  }
+
+  bool get _isToday =>
+      _selectedDate.year == _today.year &&
+      _selectedDate.month == _today.month &&
+      _selectedDate.day == _today.day;
+
+  Widget _buildDaySelector() {
+    final formatter = DateFormat('EEEE, MMMM d'); // Monday, January 15
+    final shortFormatter = DateFormat('EEE, MMM d'); // Mon, Jan 15
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          // Previous day button
+          IconButton(
+            icon: Icon(Icons.chevron_left),
+            onPressed: _goToPreviousDay,
+            tooltip: 'Previous day',
+          ),
+
+          // Date display with Today indicator if applicable
+          Expanded(
+            child: Center(
+              child: Column(
+                children: [
+                  Text(
+                    MediaQuery.of(context).size.width > 360
+                        ? formatter.format(_selectedDate)
+                        : shortFormatter.format(_selectedDate),
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  if (_isToday)
+                    Text(
+                      'Today',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  if (!_isToday)
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _selectedDate = _today;
+                        });
+                      },
+                      child: Text(
+                        'Go to today',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+
+          // Next day button (disabled when on current day)
+          IconButton(
+            icon: Icon(Icons.chevron_right),
+            onPressed: _isToday ? null : _goToNextDay,
+            tooltip: 'Next day',
+            color: _isToday
+                ? Theme.of(context).colorScheme.onSurface.withOpacity(0.5)
+                : Theme.of(context).colorScheme.primary,
+          ),
+        ],
+      ),
+    );
   }
 }
