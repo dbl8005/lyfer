@@ -51,7 +51,7 @@ class HabitTile extends ConsumerWidget {
 
     return Card(
       color: isCompletedForDate
-          ? Theme.of(context).colorScheme.primaryContainer.withAlpha(50)
+          ? Colors.grey.withOpacity(0.4)
           : Theme.of(context).colorScheme.surface,
       margin: EdgeInsets.zero, // Remove default card margin
       elevation: 0,
