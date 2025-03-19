@@ -57,7 +57,8 @@ class HabitService {
   }
 
   // Specific operations for habits
-  Future<void> toggleHabitCompletion(String habitId, DateTime date) async {
+  Future<HabitModel> toggleHabitCompletion(
+      String habitId, DateTime date) async {
     try {
       final habitDoc = await _habitsCollection.doc(habitId).get();
       final habit = HabitModel.fromJson(habitId, habitDoc.data()!);
@@ -81,6 +82,8 @@ class HabitService {
         'completedDates':
             completedDates.map((d) => Timestamp.fromDate(d)).toList(),
       });
+
+      return getHabitById(habitId);
     } catch (e) {
       throw 'Failed to toggle habit completion: $e';
     }

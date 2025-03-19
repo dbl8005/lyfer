@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:line_icons/line_icon.dart';
 
 class AppSnackbar {
   static void show({
@@ -8,14 +9,22 @@ class AppSnackbar {
     Color backgroundColor = Colors.black87,
     Color textColor = Colors.white,
     SnackBarAction? action,
-    SnackBarBehavior behavior = SnackBarBehavior.floating,
+    SnackBarBehavior behavior = SnackBarBehavior.fixed,
     EdgeInsetsGeometry? margin,
+    Widget? sideIcon,
   }) {
     final snackBar = SnackBar(
-      content: Text(
-        message,
-        style: TextStyle(color: textColor),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
       ),
+      content: Row(children: [
+        sideIcon ?? const SizedBox.shrink(),
+        const SizedBox(width: 8),
+        Text(
+          message,
+          style: TextStyle(color: textColor),
+        ),
+      ]),
       duration: duration,
       backgroundColor: backgroundColor,
       action: action,
@@ -38,10 +47,13 @@ class AppSnackbar {
     show(
       context: context,
       message: message,
-      backgroundColor: Colors.green,
       textColor: Colors.white,
       duration: duration,
       action: action,
+      sideIcon: LineIcon.check(
+        color: Colors.white,
+        size: 20,
+      ),
     );
   }
 
@@ -54,10 +66,13 @@ class AppSnackbar {
     show(
       context: context,
       message: message,
-      backgroundColor: Colors.red,
       textColor: Colors.white,
       duration: duration,
       action: action,
+      sideIcon: LineIcon.times(
+        color: Colors.white,
+        size: 20,
+      ),
     );
   }
 

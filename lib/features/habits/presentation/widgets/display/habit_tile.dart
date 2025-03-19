@@ -228,12 +228,15 @@ class HabitTile extends ConsumerWidget {
                           : '${remainingCompletions - 1} more to go this ${habit.periodLabel}';
                 }
 
-                AppSnackbar.show(
-                  context: context,
-                  message: message,
-                  backgroundColor:
-                      isCompletedForDate ? Colors.red : Colors.green,
-                );
+                isCompletedForDate
+                    ? AppSnackbar.showSuccess(
+                        context: context,
+                        message: message,
+                      )
+                    : AppSnackbar.showError(
+                        context: context,
+                        message: message,
+                      );
               },
             ),
           ],

@@ -1,6 +1,8 @@
 // lib/features/habits/presentation/screens/edit_habit_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:line_icons/line_icon.dart';
+import 'package:line_icons/line_icons.dart';
 
 import 'package:lyfer/core/config/enums/habit_enums.dart';
 import 'package:lyfer/core/config/enums/icon_enum.dart';
@@ -288,7 +290,10 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
         actions: [
           // Delete button
           IconButton(
-            icon: const Icon(Icons.delete, color: Colors.red),
+            icon: const LineIcon(
+              LineIcons.trash,
+              color: Colors.red,
+            ),
             onPressed: _isLoading ? null : _deleteHabit,
           ),
           // Save button
