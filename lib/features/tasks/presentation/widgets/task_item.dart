@@ -7,6 +7,7 @@ import 'package:line_icons/line_icons.dart';
 import 'package:lyfer/core/router/router.dart';
 import 'package:lyfer/features/tasks/domain/models/task_model.dart';
 import 'package:lyfer/features/tasks/presentation/providers/tasks_provider.dart';
+import 'package:lyfer/features/tasks/domain/enums/task_enums.dart';
 
 class TaskItem extends ConsumerWidget {
   final Task task;
@@ -51,23 +52,33 @@ class TaskItem extends ConsumerWidget {
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               border: Border.all(
-                color: task.isCompleted
-                    ? Colors.green
-                    : Theme.of(context).colorScheme.primary,
+                color: task.color ?? task.category.defaultColor,
                 width: 2,
               ),
               shape: BoxShape.circle,
             ),
             child: LineIcon(
-              task.isCompleted ? LineIcons.checkCircle : LineIcons.tasks,
+              task.category.icon,
               size: 24,
-              color: task.isCompleted
-                  ? Colors.green
-                  : Theme.of(context).colorScheme.primary,
+              color: task.color ?? task.category.defaultColor,
             ),
           ),
           title: Row(
             children: [
+              if (task.priority != TaskPriority.none)
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: task.priority.getColor(context).withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Icon(
+                    task.priority.icon,
+                    size: 16,
+                    color: task.priority.getColor(context),
+                  ),
+                ),
+              const SizedBox(width: 4),
               Expanded(
                 child: Text(
                   task.title,
@@ -92,9 +103,29 @@ class TaskItem extends ConsumerWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-              if (task.dueDate != null)
-                Row(
-                  children: [
+              Row(
+                children: [
+                  // Category indicator
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    margin: const EdgeInsets.only(right: 6),
+                    decoration: BoxDecoration(
+                      color: (task.color ?? task.category.defaultColor)
+                          .withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      task.category.label,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: task.color ?? task.category.defaultColor,
+                      ),
+                    ),
+                  ),
+                  // Due date if available
+                  if (task.dueDate != null) ...[
                     LineIcon(
                       LineIcons.calendar,
                       size: 14,
@@ -110,7 +141,8 @@ class TaskItem extends ConsumerWidget {
                       ),
                     ),
                   ],
-                ),
+                ],
+              ),
             ],
           ),
           trailing: Row(

@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+import 'package:lyfer/features/tasks/domain/enums/task_enums.dart';
 
 class Task {
   final String? id;
@@ -6,6 +8,9 @@ class Task {
   final String description;
   final DateTime? dueDate;
   final bool isCompleted;
+  final TaskCategory category;
+  final TaskPriority priority;
+  final Color? color;
   final DateTime createdAt;
 
   Task({
@@ -14,6 +19,9 @@ class Task {
     this.description = '',
     this.dueDate,
     this.isCompleted = false,
+    this.category = TaskCategory.other,
+    this.priority = TaskPriority.none,
+    this.color,
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
 
@@ -23,6 +31,9 @@ class Task {
     String? description,
     DateTime? dueDate,
     bool? isCompleted,
+    TaskCategory? category,
+    TaskPriority? priority,
+    Color? color,
     DateTime? createdAt,
   }) {
     return Task(
@@ -31,6 +42,9 @@ class Task {
       description: description ?? this.description,
       dueDate: dueDate ?? this.dueDate,
       isCompleted: isCompleted ?? this.isCompleted,
+      category: category ?? this.category,
+      priority: priority ?? this.priority,
+      color: color ?? this.color,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -42,6 +56,9 @@ class Task {
       'description': description,
       'dueDate': dueDate?.millisecondsSinceEpoch,
       'isCompleted': isCompleted,
+      'category': category.toString(),
+      'priority': priority.toString(),
+      'color': color?.value,
       'createdAt': createdAt.millisecondsSinceEpoch,
     };
   }
@@ -55,6 +72,13 @@ class Task {
           ? DateTime.fromMillisecondsSinceEpoch(json['dueDate'])
           : null,
       isCompleted: json['isCompleted'] ?? false,
+      category: TaskCategory.values.firstWhere(
+          (e) => e.toString() == json['category'],
+          orElse: () => TaskCategory.other),
+      priority: TaskPriority.values.firstWhere(
+          (e) => e.toString() == json['priority'],
+          orElse: () => TaskPriority.none),
+      color: json['color'] != null ? Color(json['color']) : null,
       createdAt: json['createdAt'] != null
           ? DateTime.fromMillisecondsSinceEpoch(json['createdAt'])
           : DateTime.now(),

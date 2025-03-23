@@ -5,8 +5,10 @@ import 'package:intl/intl.dart';
 import 'package:line_icons/line_icon.dart';
 import 'package:line_icons/line_icons.dart';
 import 'package:lyfer/core/utils/dialogs/confirm_dialog.dart';
+import 'package:lyfer/features/tasks/domain/enums/task_enums.dart';
 import 'package:lyfer/features/tasks/domain/models/task_model.dart';
 import 'package:lyfer/features/tasks/presentation/providers/tasks_provider.dart';
+import 'package:lyfer/core/utils/snackbars/snackbar.dart';
 
 class TaskDetailScreen extends ConsumerWidget {
   final String taskId;
@@ -31,30 +33,7 @@ class TaskDetailScreen extends ConsumerWidget {
 
         // If task not found, show error
         if (taskIndex == -1) {
-          return Scaffold(
-            appBar: AppBar(
-              title: const Text('Task Not Found'),
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () => context.go('/'),
-              ),
-            ),
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text('The requested task could not be found.'),
-                  const SizedBox(height: 20),
-                  Text('Task ID: $decodedId'),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () => context.go('/'),
-                    child: const Text('Go Home'),
-                  ),
-                ],
-              ),
-            ),
-          );
+          return _buildTaskNotFoundScreen(context, decodedId);
         }
 
         final task = tasks[taskIndex];
@@ -82,6 +61,7 @@ class TaskDetailScreen extends ConsumerWidget {
                   // Show a confirmation dialog before deleting
                   ConfirmDialog.show(
                       context: context,
+                      title: 'Delete Task',
                       content:
                           'Are you sure you want to delete this task? This action cannot be undone.',
                       confirmText: 'Delete',
@@ -90,72 +70,172 @@ class TaskDetailScreen extends ConsumerWidget {
                         // If confirmed, delete the task and navigate back
                         ref.read(tasksProvider.notifier).deleteTask(task.id!);
                         context.pop();
+                        // Show feedback
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('${task.title} deleted')),
+                        );
                       });
                 },
               ),
             ],
           ),
-          body: Padding(
+          body: SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  task.title,
-                  style: Theme.of(context).textTheme.headlineSmall,
-                ),
-                const SizedBox(height: 16),
-                if (task.description.isNotEmpty) ...[
-                  Text(
-                    'Description:',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  Text(task.description),
-                  const SizedBox(height: 16),
-                ],
-                if (task.dueDate != null) ...[
-                  Text(
-                    'Due Date:',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  Text(dateFormat.format(task.dueDate!)),
-                  const SizedBox(height: 16),
-                ],
+                // Header with task title and completion status
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Status:',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(width: 8),
-                    Chip(
-                      label: Text(
-                        task.isCompleted ? 'Completed' : 'Pending',
+                    // Category icon in circle
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: task.color ?? task.category.defaultColor,
+                          width: 2,
+                        ),
+                        shape: BoxShape.circle,
                       ),
-                      backgroundColor: task.isCompleted
-                          ? Colors.green.withOpacity(0.2)
-                          : Colors.orange.withOpacity(0.2),
+                      child: LineIcon(
+                        task.category.icon,
+                        size: 32,
+                        color: task.color ?? task.category.defaultColor,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            task.title,
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.copyWith(
+                                  decoration: task.isCompleted
+                                      ? TextDecoration.lineThrough
+                                      : null,
+                                ),
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              // Category label
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color:
+                                      (task.color ?? task.category.defaultColor)
+                                          .withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  task.category.label,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: task.color ??
+                                        task.category.defaultColor,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              // Priority label if it's not none
+                              if (task.priority != TaskPriority.none)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: task.priority
+                                        .getColor(context)
+                                        .withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        task.priority.icon,
+                                        size: 12,
+                                        color: task.priority.getColor(context),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        task.priority.label,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color:
+                                              task.priority.getColor(context),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              const SizedBox(width: 8),
+                              // Status chip
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: task.isCompleted
+                                      ? Colors.green.withOpacity(0.2)
+                                      : Colors.orange.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  task.isCompleted ? 'Completed' : 'Pending',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: task.isCompleted
+                                        ? Colors.green
+                                        : Colors.orange,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
+
                 const SizedBox(height: 24),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    ref
-                        .read(tasksProvider.notifier)
-                        .toggleTaskCompletion(task.id!);
-                  },
-                  icon: Icon(
-                    task.isCompleted ? Icons.close : Icons.check,
-                  ),
-                  label: Text(
-                    task.isCompleted
-                        ? 'Mark as incomplete'
-                        : 'Mark as complete',
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 50),
-                  ),
+
+                // Task metadata
+                _buildInfoCard(
+                  context,
+                  [
+                    if (task.description.isNotEmpty)
+                      _buildInfoRow(
+                        context,
+                        LineIcons.alignLeft,
+                        'Description',
+                        task.description,
+                      ),
+                    if (task.dueDate != null)
+                      _buildInfoRow(
+                        context,
+                        LineIcons.calendar,
+                        'Due Date',
+                        dateFormat.format(task.dueDate!),
+                        task.dueDate != null
+                            ? _getDueDateColor(task.dueDate!, context)
+                            : null,
+                      ),
+                    _buildInfoRow(
+                      context,
+                      LineIcons.clock,
+                      'Created',
+                      dateFormat.format(task.createdAt),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -163,5 +243,135 @@ class TaskDetailScreen extends ConsumerWidget {
         );
       },
     );
+  }
+
+  Widget _buildTaskNotFoundScreen(BuildContext context, String decodedId) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Task Not Found'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/'),
+        ),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const LineIcon(
+              LineIcons.questionCircle,
+              size: 64,
+              color: Colors.grey,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Task Not Found',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text('The requested task could not be found.'),
+            const SizedBox(height: 8),
+            Text(
+              'Task ID: $decodedId',
+              style: const TextStyle(
+                fontFamily: 'monospace',
+                fontSize: 12,
+              ),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: () => context.go('/'),
+              icon: const Icon(LineIcons.home),
+              label: const Text('Go Home'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoCard(BuildContext context, List<Widget> children) {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: children,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(
+      BuildContext context, IconData icon, String label, String value,
+      [Color? valueColor]) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                icon,
+                size: 16,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Padding(
+            padding: const EdgeInsets.only(left: 24),
+            child: Text(
+              value,
+              style: TextStyle(
+                color: valueColor,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Helper method to determine due date color based on urgency
+  Color _getDueDateColor(DateTime dueDate, BuildContext context) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final due = DateTime(dueDate.year, dueDate.month, dueDate.day);
+    final difference = due.difference(today).inDays;
+
+    if (difference < 0) {
+      return Colors.red; // Overdue
+    } else if (difference == 0) {
+      return Colors.orange; // Due today
+    } else if (difference <= 2) {
+      return Colors.amber; // Due soon
+    }
+    return Theme.of(context).colorScheme.onSurface; // Normal
   }
 }

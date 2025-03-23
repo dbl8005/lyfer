@@ -56,21 +56,7 @@ Thank you for contributing to the Lyfer project! To ensure consistency and maint
 ## 4. **Folder Structure**
 
 ### **Organize Code by Feature**
-- Follow the `features` folder structure:
-    ```
-    lib/
-        features/
-            habits/
-                models/
-                services/
-                presentation/
-                    widgets/
-                        detail_widgets/
-            notes/
-                models/
-                services/
-                presentation/
-    ```
+- Follow feature first approach.
 
 ### **Shared Components**
 - Place reusable components in `core/utils` or `core/widgets`.
