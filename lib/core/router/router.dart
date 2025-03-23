@@ -17,6 +17,9 @@ import 'package:lyfer/features/notes/models/note_model.dart';
 import 'package:lyfer/features/notes/presentation/screens/new_note_screen.dart';
 import 'package:lyfer/features/notes/presentation/screens/note_screen.dart';
 import 'package:lyfer/features/notes/services/note_service.dart';
+import 'package:lyfer/features/tasks/presentation/screens/task_detail_screen.dart';
+import 'package:lyfer/features/tasks/presentation/screens/task_form_screen.dart';
+import 'package:lyfer/features/tasks/presentation/screens/tasks_screen.dart';
 
 class AppRouterConsts {
   static const String home = '/';
@@ -29,6 +32,10 @@ class AppRouterConsts {
   static const String note = '/habits/details/note';
   static const String habitEdit = '/habits/edit';
   static const String newNote = '/habits/new-note';
+  static const String tasks = '/tasks';
+  static const String newTask = '/tasks/new';
+  static const String taskDetail = '/tasks/detail';
+  static const String editTask = '/tasks/edit';
 }
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -164,6 +171,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final habitId = state.pathParameters['habitId']!;
           return NewNoteScreen(habitId: habitId);
+        },
+      ),
+      GoRoute(
+        path: AppRouterConsts.newTask,
+        builder: (context, state) => const TaskFormScreen(),
+      ),
+      GoRoute(
+        path: '${AppRouterConsts.taskDetail}/:id',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return TaskDetailScreen(taskId: id);
+        },
+      ),
+      GoRoute(
+        path: '${AppRouterConsts.editTask}/:id',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return TaskFormScreen(taskId: id);
         },
       ),
     ],
