@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lyfer/core/router/router.dart';
 import 'package:lyfer/core/theme/colors.dart';
+import 'package:lyfer/core/theme/theme_provider.dart';
 import 'package:lyfer/firebase_options.dart';
 import 'core/theme/app_theme.dart';
 
@@ -40,12 +41,13 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeProvider);
     return MaterialApp.router(
       title: 'Lyfer',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
+      themeMode: themeMode,
       routerConfig: ref.watch(appRouterProvider),
     );
   }

@@ -7,6 +7,7 @@ import 'package:lyfer/features/auth/providers/auth_provider.dart';
 import 'package:lyfer/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:lyfer/features/habits/presentation/screens/habits_screen.dart';
 import 'package:lyfer/features/home/presentation/widgets/custom_bottom_nav.dart';
+import 'package:lyfer/features/settings/presentation/screens/settings_screen.dart';
 import 'package:lyfer/features/tasks/presentation/screens/tasks_screen.dart';
 import 'package:lyfer/features/tasks/presentation/screens/task_form_screen.dart';
 
@@ -23,7 +24,7 @@ class HomeScreen extends ConsumerWidget {
       const DashboardScreen(),
       HabitsScreen(),
       const TasksScreen(),
-      Text('Settings'),
+      SettingsScreen(),
     ];
 
     final iconList = [

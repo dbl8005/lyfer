@@ -18,6 +18,7 @@ import 'package:lyfer/features/notes/models/note_model.dart';
 import 'package:lyfer/features/notes/presentation/screens/new_note_screen.dart';
 import 'package:lyfer/features/notes/presentation/screens/note_screen.dart';
 import 'package:lyfer/features/notes/services/note_service.dart';
+import 'package:lyfer/features/settings/presentation/screens/settings_screen.dart';
 import 'package:lyfer/features/tasks/presentation/screens/task_detail_screen.dart';
 import 'package:lyfer/features/tasks/presentation/screens/task_form_screen.dart';
 import 'package:lyfer/features/tasks/presentation/screens/tasks_screen.dart';
@@ -37,6 +38,7 @@ class AppRouterConsts {
   static const String newTask = '/tasks/new';
   static const String taskDetail = '/tasks/detail';
   static const String editTask = '/tasks/edit';
+  static const String settings = '/settings';
 }
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -190,6 +192,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final id = state.pathParameters['id']!;
           return TaskFormScreen(taskId: id);
+        },
+      ),
+      GoRoute(
+        path: AppRouterConsts.settings,
+        builder: (context, state) {
+          return const SettingsScreen();
         },
       ),
     ],
