@@ -4,16 +4,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:line_icons/line_icon.dart';
 import 'package:line_icons/line_icons.dart';
 
-import 'package:lyfer/core/config/enums/habit_enums.dart';
 import 'package:lyfer/core/config/enums/icon_enum.dart';
 import 'package:lyfer/core/utils/snackbars/snackbar.dart';
-import 'package:lyfer/features/habits/models/habit_model.dart';
+import 'package:lyfer/features/habits/domain/enums/habit_enums.dart';
+import 'package:lyfer/features/habits/domain/models/habit_model.dart';
+import 'package:lyfer/features/habits/presentation/providers/habits_provider.dart';
 import 'package:lyfer/features/habits/presentation/widgets/form/category_selector.dart';
 import 'package:lyfer/features/habits/presentation/widgets/form/habit_color_picker.dart';
 import 'package:lyfer/features/habits/presentation/widgets/form/habit_text_field.dart';
 import 'package:lyfer/features/habits/presentation/widgets/form/priority_selector.dart';
 import 'package:lyfer/features/habits/presentation/widgets/form/reminder_time_picker.dart';
-import 'package:lyfer/features/habits/services/habit_service.dart';
+import 'package:lyfer/features/habits/data/habit_service.dart';
 
 class EditHabitScreen extends ConsumerStatefulWidget {
   final HabitModel habit;
@@ -105,7 +106,7 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
         specificReminderTime: _specificReminderTime, // Add specific time
       );
 
-      await ref.read(habitServiceProvider).updateHabit(updatedHabit);
+      await ref.read(habitsProvider.notifier).updateHabit(updatedHabit);
 
       if (mounted) {
         Navigator.of(context).pop();
@@ -154,7 +155,7 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
     setState(() => _isLoading = true);
 
     try {
-      await ref.read(habitServiceProvider).deleteHabit(widget.habit.id!);
+      await ref.read(habitsProvider.notifier).deleteHabit(widget.habit.id!);
       if (mounted) {
         Navigator.of(context).pop();
         AppSnackbar.show(

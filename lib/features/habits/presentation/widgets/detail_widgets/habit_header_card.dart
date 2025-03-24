@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:line_icons/line_icons.dart';
-import 'package:lyfer/core/config/enums/habit_enums.dart';
-import 'package:lyfer/features/habits/models/habit_model.dart';
+import 'package:lyfer/features/habits/domain/enums/habit_enums.dart';
+import 'package:lyfer/features/habits/domain/models/habit_model.dart';
 import 'package:lyfer/features/habits/presentation/widgets/shared/info_row.dart';
 
 /// A card that displays the header information about a habit

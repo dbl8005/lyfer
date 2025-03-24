@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:lyfer/core/utils/snackbars/snackbar.dart';
+import 'package:lyfer/features/habits/presentation/providers/habits_provider.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:lyfer/features/habits/models/habit_model.dart';
-import 'package:lyfer/features/habits/services/habit_service.dart';
+import 'package:lyfer/features/habits/domain/models/habit_model.dart';
+import 'package:lyfer/features/habits/data/habit_service.dart';
 
 /// A calendar view showing habit completion dates with long-press to toggle completion
 class HabitCalendarView extends ConsumerStatefulWidget {
@@ -136,7 +137,7 @@ class _HabitCalendarViewState extends ConsumerState<HabitCalendarView> {
       try {
         // Toggle completion status through the service
         final updatedHabit =
-            await ref.read(habitServiceProvider).toggleHabitCompletion(
+            await ref.read(habitsProvider.notifier).toggleHabitCompletion(
                   habitId,
                   day,
                 );

@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:line_icons/line_icon.dart';
-import 'package:lyfer/core/config/enums/habit_enums.dart';
 import 'package:lyfer/core/config/enums/icon_enum.dart';
-import 'package:lyfer/features/habits/models/habit_model.dart';
+import 'package:lyfer/features/habits/domain/enums/habit_enums.dart';
+import 'package:lyfer/features/habits/domain/models/habit_model.dart';
+import 'package:lyfer/features/habits/presentation/providers/habits_provider.dart';
 import 'package:lyfer/features/habits/presentation/widgets/form/day_selector.dart';
 import 'package:lyfer/features/habits/presentation/widgets/form/habit_color_picker.dart';
 import 'package:lyfer/features/habits/presentation/widgets/form/habit_text_field.dart';
-import 'package:lyfer/features/habits/services/habit_service.dart';
+import 'package:lyfer/features/habits/data/habit_service.dart';
 import 'package:line_icons/line_icons.dart';
 import 'package:lyfer/features/habits/presentation/widgets/form/habit_icon_picker.dart';
 import 'package:lyfer/features/habits/presentation/widgets/form/priority_selector.dart';
 import 'package:lyfer/features/habits/presentation/widgets/form/reminder_time_picker.dart';
 import 'package:lyfer/features/habits/presentation/widgets/form/category_selector.dart';
-import 'package:lyfer/core/config/enums/habit_categories.dart';
 
 class NewHabitScreen extends ConsumerStatefulWidget {
   const NewHabitScreen({super.key});
@@ -79,7 +79,7 @@ class _NewHabitScreenState extends ConsumerState<NewHabitScreen> {
         specificReminderTime: _specificReminderTime,
       );
 
-      await ref.read(habitServiceProvider).createHabit(habit);
+      await ref.read(habitsProvider.notifier).createHabit(habit);
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
       if (mounted) {

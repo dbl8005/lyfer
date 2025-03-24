@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:lyfer/core/config/enums/habit_categories.dart';
+import 'package:lyfer/features/habits/domain/enums/habit_enums.dart';
+import 'package:lyfer/features/habits/domain/models/habit_categories.dart';
 
 class CategorySelector extends StatelessWidget {
   final String selectedCategoryId;

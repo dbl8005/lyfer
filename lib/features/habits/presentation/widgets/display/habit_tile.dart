@@ -3,18 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:line_icons/line_icon.dart';
 import 'package:line_icons/line_icons.dart';
-import 'package:lyfer/core/config/enums/habit_enums.dart';
 import 'package:lyfer/core/config/enums/icon_enum.dart';
 import 'package:lyfer/core/router/router.dart';
 import 'package:lyfer/core/utils/dialogs/confirm_dialog.dart';
 import 'package:lyfer/core/utils/snackbars/snackbar.dart';
-import 'package:lyfer/features/habits/models/habit_model.dart';
+import 'package:lyfer/features/habits/domain/enums/habit_enums.dart';
+import 'package:lyfer/features/habits/domain/models/habit_model.dart';
+import 'package:lyfer/features/habits/presentation/providers/habits_provider.dart';
 import 'package:lyfer/features/habits/presentation/screens/edit_habit_screen.dart';
 import 'package:lyfer/features/habits/presentation/widgets/display/active_days_indicator.dart';
 import 'package:lyfer/features/habits/presentation/widgets/display/streak_counter.dart';
-import 'package:lyfer/features/habits/services/habit_service.dart';
+import 'package:lyfer/features/habits/data/habit_service.dart';
 import 'package:lyfer/core/utils/helpers/streak_calculator.dart';
-import 'package:lyfer/core/config/enums/habit_categories.dart';
 
 class HabitTile extends ConsumerWidget {
   const HabitTile({
@@ -28,7 +28,7 @@ class HabitTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final habitService = ref.read(habitServiceProvider);
+    final habitService = ref.read(habitsProvider.notifier);
 
     // Check if habit is completed for the current period
     final isCompletedForPeriod = habit.isCompletedForCurrentPeriod();
@@ -209,7 +209,7 @@ class HabitTile extends ConsumerWidget {
               ),
               onPressed: () {
                 // Call the service to toggle habit completion
-                final habitService = ref.read(habitServiceProvider);
+                final habitService = ref.read(habitsProvider.notifier);
                 habitService.toggleHabitCompletion(habit.id!, selectedDate);
 
                 // Show feedback with snackbar

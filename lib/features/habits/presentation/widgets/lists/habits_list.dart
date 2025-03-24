@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lyfer/features/habits/models/habit_model.dart';
+import 'package:lyfer/features/habits/domain/models/habit_model.dart';
 import 'package:lyfer/features/habits/presentation/widgets/display/habit_tile.dart';
 
 class HabitsList extends StatelessWidget {

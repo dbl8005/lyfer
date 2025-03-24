@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:lyfer/core/config/enums/habit_enums.dart';
-import 'package:lyfer/features/habits/models/habit_model.dart';
+import 'package:lyfer/features/habits/domain/enums/habit_enums.dart';
+import 'package:lyfer/features/habits/domain/models/habit_model.dart';
 import 'package:lyfer/features/habits/presentation/widgets/empty_states/empty_section_message.dart';
 import 'package:lyfer/features/habits/presentation/widgets/lists/habits_list.dart';
 import 'package:lyfer/features/habits/presentation/widgets/display/section_header.dart';

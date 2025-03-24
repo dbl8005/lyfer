@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lyfer/core/config/constants/habit_constants.dart';
-import 'package:lyfer/core/config/enums/habit_enums.dart';
 import 'package:lyfer/core/router/router.dart';
 import 'package:lyfer/core/widgets/error_display.dart';
+import 'package:lyfer/features/habits/domain/enums/habit_enums.dart';
 import 'package:lyfer/features/habits/presentation/widgets/empty_states/empty_habits_view.dart';
 import 'package:lyfer/features/habits/presentation/widgets/habits_content.dart';
-import 'package:lyfer/features/habits/providers/habits_provider.dart';
+import 'package:lyfer/features/habits/presentation/providers/habits_provider.dart';
 
 /// The main habits screen that displays habits organized by time of day
 /// with navigation controls for different dates

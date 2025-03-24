@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:line_icons/line_icons.dart';
 import 'package:lyfer/core/utils/helpers/streak_calculator.dart';
-import 'package:lyfer/features/habits/models/habit_model.dart';
+import 'package:lyfer/features/habits/domain/models/habit_model.dart';
 
 /// Displays statistics for a habit including streak, completion rate,
 /// and progress for the current period

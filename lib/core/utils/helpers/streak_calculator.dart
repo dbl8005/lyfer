@@ -1,4 +1,4 @@
-import 'package:lyfer/core/config/enums/habit_enums.dart';
+import 'package:lyfer/features/habits/domain/enums/habit_enums.dart';
 
 class StreakCalculator {
   /// Calculate the current streak for a habit based on its frequency

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:line_icons/line_icon.dart';
 import 'package:lyfer/core/config/constants/habit_constants.dart';
-import 'package:lyfer/core/config/enums/habit_enums.dart';
+import 'package:lyfer/features/habits/domain/enums/habit_enums.dart';
 
 class SectionHeader extends StatelessWidget {
   final DaySection section;

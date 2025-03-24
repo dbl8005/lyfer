@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:lyfer/core/config/enums/habit_enums.dart';
-import 'package:lyfer/core/config/enums/habit_categories.dart';
+import 'package:lyfer/features/habits/domain/enums/habit_enums.dart';
+import 'package:lyfer/features/habits/domain/models/habit_categories.dart';
 
 class HabitModel {
   final String? id;
@@ -293,13 +293,13 @@ class HabitModel {
   }
 
   // Add helper getter for category
-  HabitCategory get category {
+  HabitCategoryModel get category {
     try {
       return findCategoryById(categoryId) ??
           habitCategories.firstWhere((c) => c.id == 'other');
     } catch (e) {
       // Fallback to ensure we always return a valid category
-      return HabitCategory(
+      return HabitCategoryModel(
         id: 'other',
         name: 'Other',
         icon: Icons.star,

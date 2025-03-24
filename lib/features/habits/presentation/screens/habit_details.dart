@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:line_icons/line_icons.dart';
-import 'package:lyfer/core/config/enums/habit_enums.dart';
 import 'package:lyfer/core/router/router.dart';
 import 'package:lyfer/core/utils/dialogs/confirm_dialog.dart';
 import 'package:lyfer/core/utils/snackbars/snackbar.dart';
-import 'package:lyfer/features/habits/models/habit_model.dart';
+import 'package:lyfer/features/habits/domain/models/habit_model.dart';
+import 'package:lyfer/features/habits/presentation/providers/habits_provider.dart';
 import 'package:lyfer/features/habits/presentation/widgets/detail_widgets/habit_calendar_view.dart';
 import 'package:lyfer/features/habits/presentation/widgets/detail_widgets/habit_header_card.dart';
 import 'package:lyfer/features/habits/presentation/widgets/detail_widgets/habit_statistics.dart';
-import 'package:lyfer/features/habits/services/habit_service.dart';
+import 'package:lyfer/features/habits/data/habit_service.dart';
 import 'package:lyfer/features/notes/models/note_model.dart';
 import 'package:lyfer/features/notes/presentation/widgets/notes_grid_view.dart';
 import 'package:lyfer/features/notes/services/note_service.dart';
@@ -75,7 +75,7 @@ class _HabitDetailsState extends ConsumerState<HabitDetails> {
 
     if (confirmed == true) {
       try {
-        await ref.read(habitServiceProvider).deleteHabit(widget.habit.id!);
+        await ref.read(habitsProvider.notifier).deleteHabit(widget.habit.id!);
         if (mounted) {
           AppSnackbar.show(
             context: context,
