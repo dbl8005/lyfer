@@ -8,7 +8,7 @@ import 'package:lyfer/features/habits/presentation/providers/habits_provider.dar
 import 'package:lyfer/features/habits/presentation/widgets/form/day_selector.dart';
 import 'package:lyfer/features/habits/presentation/widgets/form/habit_color_picker.dart';
 import 'package:lyfer/features/habits/presentation/widgets/form/habit_text_field.dart';
-import 'package:lyfer/features/habits/data/habit_service.dart';
+import 'package:lyfer/features/habits/data/repositories/habit_repository.dart';
 import 'package:line_icons/line_icons.dart';
 import 'package:lyfer/features/habits/presentation/widgets/form/habit_icon_picker.dart';
 import 'package:lyfer/features/habits/presentation/widgets/form/priority_selector.dart';

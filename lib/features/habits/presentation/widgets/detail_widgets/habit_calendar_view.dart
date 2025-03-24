@@ -5,7 +5,7 @@ import 'package:lyfer/core/utils/snackbars/snackbar.dart';
 import 'package:lyfer/features/habits/presentation/providers/habits_provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:lyfer/features/habits/domain/models/habit_model.dart';
-import 'package:lyfer/features/habits/data/habit_service.dart';
+import 'package:lyfer/features/habits/data/repositories/habit_repository.dart';
 
 /// A calendar view showing habit completion dates with long-press to toggle completion
 class HabitCalendarView extends ConsumerStatefulWidget {

@@ -10,7 +10,7 @@ import 'package:lyfer/features/habits/presentation/providers/habits_provider.dar
 import 'package:lyfer/features/habits/presentation/widgets/detail_widgets/habit_calendar_view.dart';
 import 'package:lyfer/features/habits/presentation/widgets/detail_widgets/habit_header_card.dart';
 import 'package:lyfer/features/habits/presentation/widgets/detail_widgets/habit_statistics.dart';
-import 'package:lyfer/features/habits/data/habit_service.dart';
+import 'package:lyfer/features/habits/data/repositories/habit_repository.dart';
 import 'package:lyfer/features/notes/models/note_model.dart';
 import 'package:lyfer/features/notes/presentation/widgets/notes_grid_view.dart';
 import 'package:lyfer/features/notes/services/note_service.dart';

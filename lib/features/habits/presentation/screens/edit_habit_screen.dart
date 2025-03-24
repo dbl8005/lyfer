@@ -14,7 +14,7 @@ import 'package:lyfer/features/habits/presentation/widgets/form/habit_color_pick
 import 'package:lyfer/features/habits/presentation/widgets/form/habit_text_field.dart';
 import 'package:lyfer/features/habits/presentation/widgets/form/priority_selector.dart';
 import 'package:lyfer/features/habits/presentation/widgets/form/reminder_time_picker.dart';
-import 'package:lyfer/features/habits/data/habit_service.dart';
+import 'package:lyfer/features/habits/data/repositories/habit_repository.dart';
 
 class EditHabitScreen extends ConsumerStatefulWidget {
   final HabitModel habit;

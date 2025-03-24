@@ -13,7 +13,7 @@ import 'package:lyfer/features/habits/presentation/providers/habits_provider.dar
 import 'package:lyfer/features/habits/presentation/screens/edit_habit_screen.dart';
 import 'package:lyfer/features/habits/presentation/widgets/display/active_days_indicator.dart';
 import 'package:lyfer/features/habits/presentation/widgets/display/streak_counter.dart';
-import 'package:lyfer/features/habits/data/habit_service.dart';
+import 'package:lyfer/features/habits/data/repositories/habit_repository.dart';
 import 'package:lyfer/core/utils/helpers/streak_calculator.dart';
 
 class HabitTile extends ConsumerWidget {

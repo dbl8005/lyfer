@@ -12,7 +12,7 @@ import 'package:lyfer/features/habits/presentation/screens/edit_habit_screen.dar
 import 'package:lyfer/features/habits/presentation/screens/habit_details.dart';
 import 'package:lyfer/features/habits/presentation/screens/habits_screen.dart';
 import 'package:lyfer/features/habits/presentation/screens/new_habit_screen.dart';
-import 'package:lyfer/features/habits/data/habit_service.dart';
+import 'package:lyfer/features/habits/data/repositories/habit_repository.dart';
 import 'package:lyfer/features/home/presentation/screens/home_screen.dart';
 import 'package:lyfer/features/notes/models/note_model.dart';
 import 'package:lyfer/features/notes/presentation/screens/new_note_screen.dart';
