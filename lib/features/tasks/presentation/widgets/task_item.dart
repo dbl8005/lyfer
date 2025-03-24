@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:line_icons/line_icon.dart';
 import 'package:line_icons/line_icons.dart';
 import 'package:lyfer/core/router/router.dart';
+import 'package:lyfer/core/utils/dialogs/confirm_dialog.dart';
+import 'package:lyfer/core/utils/snackbars/snackbar.dart';
 import 'package:lyfer/features/tasks/domain/models/task_model.dart';
 import 'package:lyfer/features/tasks/presentation/providers/tasks_provider.dart';
 import 'package:lyfer/features/tasks/domain/enums/task_enums.dart';
@@ -156,10 +158,20 @@ class TaskItem extends ConsumerWidget {
                       context.push('${AppRouterConsts.taskDetail}/${task.id}');
                       break;
                     case 'delete':
-                      ref.read(tasksProvider.notifier).deleteTask(task.id!);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('${task.title} deleted')),
-                      );
+                      // Show confirmation dialog before deleting
+                      ConfirmDialog.show(
+                              context: context,
+                              content:
+                                  'Are you sure you want to delete this task?')
+                          .then((value) {
+                        if (value == true) {
+                          ref.read(tasksProvider.notifier).deleteTask(task.id!);
+                          AppSnackbar.showSuccess(
+                              context: context,
+                              message: '${task.title} deleted successfully');
+                        }
+                      });
+
                       break;
                   }
                 },
