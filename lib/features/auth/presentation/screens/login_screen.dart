@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:line_icons/line_icons.dart';
+import 'package:lyfer/core/constants/ui_constants.dart';
 import 'package:lyfer/core/router/router.dart';
 import 'package:lyfer/core/utils/snackbars/snackbar.dart';
+import 'package:lyfer/features/auth/constants/auth_constants.dart';
 import 'package:lyfer/features/auth/providers/auth_provider.dart';
 import 'package:lyfer/features/auth/presentation/widgets/auth_button.dart';
 import 'package:lyfer/features/auth/presentation/widgets/email_form_field.dart';
@@ -22,6 +24,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Check if user is already authenticated
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authService = ref.read(authServiceProvider);
+      if (authService.isAuthenticated) {
+        context.go(AppRouterConsts.home);
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -45,31 +59,33 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         _emailController.text.trim(),
         _passwordController.text,
       );
+
       if (mounted) {
-        context.go(AppRouterConsts.home);
+        final user = authProvider.currentUser;
+        if (user != null && !user.emailVerified) {
+          context.go(AppRouterConsts.verifyEmail);
+        } else {
+          context.go(AppRouterConsts.home);
+        }
       }
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
 
+      String message;
       switch (e.code) {
-        case 'user-not-found':
-          AppSnackbar.show(
-              context: context, message: 'No user found for that email.');
+        case AuthConstants.userNotFound:
+          message = AuthConstants.userNotFoundMessage;
           break;
-        case 'wrong-password':
-          AppSnackbar.show(
-              context: context,
-              message: 'Wrong password provided for that user.');
+        case AuthConstants.wrongPassword:
+          message = AuthConstants.wrongPasswordMessage;
           break;
-        case 'invalid-email':
-          AppSnackbar.show(
-              context: context, message: 'Invalid email provided.');
+        case AuthConstants.invalidEmail:
+          message = AuthConstants.invalidEmailMessage;
           break;
         default:
-          AppSnackbar.show(
-              context: context, message: 'An error occurred: ${e.message}');
+          message = e.message ?? AuthConstants.genericErrorMessage;
       }
-      print(e);
+      AppSnackbar.show(context: context, message: message);
     } finally {
       if (mounted) {
         setState(() {
@@ -96,14 +112,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
       String message;
       switch (e.code) {
-        case 'sign_in_canceled':
-          message = 'Sign in was canceled';
+        case AuthConstants.signInCanceled:
+          message = AuthConstants.signInCanceledMessage;
           break;
-        case 'google_sign_in_failed':
-          message = 'Google Sign In failed. Please try again';
+        case AuthConstants.googleSignInFailed:
+          message = AuthConstants.googleSignInFailedMessage;
           break;
         default:
-          message = e.message ?? 'An error occurred during sign in';
+          message = e.message ?? AuthConstants.genericErrorMessage;
       }
 
       AppSnackbar.show(context: context, message: message);
@@ -120,40 +136,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(UIConstants.defaultPadding),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Text(
-              'Welcome Back!',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+              AuthConstants.welcomeBackText,
+              style: UIConstants.subheadingStyle,
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 30),
+            const SizedBox(height: UIConstants.extraLargeSpacing),
             Form(
               key: _formKey,
               child: Column(
                 children: [
                   EmailFormField(
                     controller: _emailController,
-                    validator: (p0) {
-                      if (p0 == null || p0.isEmpty) {
-                        return 'Email is required';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  PasswordFormField(
-                    controller: _passwordController,
-                    validator: (p0) {
-                      if (p0 == null || p0.isEmpty) {
-                        return 'Password is required';
-                      }
+                    validator: (value) {
                       return null;
                     },
                   ),

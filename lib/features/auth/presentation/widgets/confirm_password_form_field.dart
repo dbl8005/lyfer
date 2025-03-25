@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lyfer/core/utils/validators/password_validator.dart';
+import 'package:lyfer/features/auth/constants/auth_constants.dart';
 
 class ConfirmPasswordFormField extends StatefulWidget {
   final TextEditingController controller;
@@ -24,7 +25,7 @@ class _ConfirmPasswordFormFieldState extends State<ConfirmPasswordFormField> {
     return TextFormField(
       controller: widget.controller,
       decoration: InputDecoration(
-        labelText: 'Password',
+        labelText: AuthConstants.confirmPasswordLabel,
         border: const OutlineInputBorder(),
         prefixIcon: const Icon(Icons.lock),
         suffixIcon: IconButton(
@@ -44,6 +45,7 @@ class _ConfirmPasswordFormFieldState extends State<ConfirmPasswordFormField> {
           value,
         );
       },
+      textInputAction: TextInputAction.done,
     );
   }
 }

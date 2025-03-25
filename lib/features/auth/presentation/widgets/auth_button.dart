@@ -1,36 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:lyfer/core/constants/ui_constants.dart';
 
-class AuthButton extends StatefulWidget {
+class AuthButton extends StatelessWidget {
   final bool isLoading;
   final VoidCallback onPressed;
   final String text;
-  final Color? buttonColor; // Optional button color
-  final Icon? leadingIcon; // Optional leading icon
+  final Color? buttonColor;
+  final Icon? leadingIcon;
 
   const AuthButton({
     super.key,
     required this.isLoading,
     required this.onPressed,
     required this.text,
-    this.buttonColor, // Optional parameter
-    this.leadingIcon, // Optional parameter
+    this.buttonColor,
+    this.leadingIcon,
   });
 
   @override
-  State<AuthButton> createState() => _AuthButtonState();
-}
-
-class _AuthButtonState extends State<AuthButton> {
-  @override
   Widget build(BuildContext context) {
     return ElevatedButton(
-      onPressed: widget.isLoading ? null : widget.onPressed,
+      onPressed: isLoading ? null : onPressed,
       style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        backgroundColor: widget.buttonColor,
-        fixedSize: Size(200, 60),
+        padding:
+            const EdgeInsets.symmetric(vertical: UIConstants.mediumSpacing),
+        backgroundColor: buttonColor,
+        fixedSize: UIConstants.defaultButtonSize,
       ),
-      child: widget.isLoading
+      child: isLoading
           ? const SizedBox(
               height: 20,
               width: 20,
@@ -43,12 +40,12 @@ class _AuthButtonState extends State<AuthButton> {
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (widget.leadingIcon != null) ...[
-                  widget.leadingIcon!,
-                  const SizedBox(width: 8),
+                if (leadingIcon != null) ...[
+                  leadingIcon!,
+                  const SizedBox(width: UIConstants.smallSpacing),
                 ],
                 Text(
-                  widget.text,
+                  text,
                   style: const TextStyle(fontSize: 16),
                 ),
               ],
