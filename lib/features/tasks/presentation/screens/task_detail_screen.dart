@@ -4,11 +4,14 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:line_icons/line_icon.dart';
 import 'package:line_icons/line_icons.dart';
+import 'package:lyfer/core/constants/app_constants.dart';
 import 'package:lyfer/core/utils/dialogs/confirm_dialog.dart';
 import 'package:lyfer/features/tasks/domain/enums/task_enums.dart';
 import 'package:lyfer/features/tasks/domain/models/task_model.dart';
+import 'package:lyfer/features/tasks/domain/utils/task_utils.dart';
 import 'package:lyfer/features/tasks/presentation/providers/tasks_provider.dart';
 import 'package:lyfer/core/utils/snackbars/snackbar.dart';
+import 'package:lyfer/features/tasks/presentation/widgets/task_due_date_badge.dart';
 
 class TaskDetailScreen extends ConsumerWidget {
   final String taskId;
@@ -360,18 +363,6 @@ class TaskDetailScreen extends ConsumerWidget {
 
   // Helper method to determine due date color based on urgency
   Color _getDueDateColor(DateTime dueDate, BuildContext context) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final due = DateTime(dueDate.year, dueDate.month, dueDate.day);
-    final difference = due.difference(today).inDays;
-
-    if (difference < 0) {
-      return Colors.red; // Overdue
-    } else if (difference == 0) {
-      return Colors.orange; // Due today
-    } else if (difference <= 2) {
-      return Colors.amber; // Due soon
-    }
-    return Theme.of(context).colorScheme.onSurface; // Normal
+    return TaskUtils.getDueDateColor(dueDate, context);
   }
 }

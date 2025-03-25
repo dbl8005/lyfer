@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lyfer/core/config/constants/habit_constants.dart';
+import 'package:lyfer/core/config/constants/ui_constants.dart';
 import 'package:lyfer/core/router/router.dart';
-import 'package:lyfer/core/widgets/error_display.dart';
+import 'package:lyfer/core/utils/scroll/section_scroll_utility.dart';
 import 'package:lyfer/features/habits/domain/enums/habit_enums.dart';
-import 'package:lyfer/features/habits/presentation/widgets/empty_states/empty_habits_view.dart';
-import 'package:lyfer/features/habits/presentation/widgets/habits_content.dart';
 import 'package:lyfer/features/habits/presentation/providers/habits_provider.dart';
+import 'package:lyfer/features/habits/presentation/widgets/habits_content.dart';
+import 'package:lyfer/features/habits/presentation/widgets/state_handlers/habit_state_handler.dart';
 
 /// The main habits screen that displays habits organized by time of day
 /// with navigation controls for different dates
@@ -41,19 +42,12 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
   /// Scrolls to the current time section for better user experience
   void _scrollToCurrentSection() {
     final currentSection = ref.read(currentSectionProvider);
-    final currentKey = _sectionKeys[currentSection];
 
-    if (currentKey?.currentContext != null) {
-      final RenderBox renderBox =
-          currentKey!.currentContext!.findRenderObject() as RenderBox;
-      final position = renderBox.localToGlobal(Offset.zero);
-
-      _scrollController.animateTo(
-        position.dy - HabitsConstants.sectionScrollOffset,
-        duration: HabitsConstants.scrollAnimationDuration,
-        curve: HabitsConstants.scrollAnimationCurve,
-      );
-    }
+    SectionScrollUtility.scrollToSection(
+      scrollController: _scrollController,
+      sectionKeys: _sectionKeys,
+      targetSection: currentSection,
+    );
   }
 
   /// Navigates to the habit creation screen
@@ -66,27 +60,15 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
     final habitsAsyncValue = ref.watch(habitsStreamProvider);
 
     return Semantics(
-      label: 'Habits screen',
-      child: habitsAsyncValue.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(
-            semanticsLabel: 'Loading habits',
-          ),
+      label: UIConstants.habitsScreenLabel,
+      child: HabitStateHandler(
+        habitsAsyncValue: habitsAsyncValue,
+        onCreateHabit: _navigateToCreateHabit,
+        onRetry: () => ref.refresh(habitsStreamProvider),
+        dataBuilder: (habits) => HabitsContent(
+          scrollController: _scrollController,
+          sectionKeys: _sectionKeys,
         ),
-        error: (error, stack) => ErrorDisplay(
-          errorMessage: 'Failed to load habits: $error',
-          onRetry: () => ref.refresh(habitsStreamProvider),
-        ),
-        data: (habits) {
-          if (habits.isEmpty) {
-            return EmptyHabitsView(onCreateHabit: _navigateToCreateHabit);
-          }
-
-          return HabitsContent(
-            scrollController: _scrollController,
-            sectionKeys: _sectionKeys,
-          );
-        },
       ),
     );
   }

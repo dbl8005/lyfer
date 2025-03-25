@@ -4,12 +4,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:line_icons/line_icons.dart';
+import 'package:lyfer/core/constants/app_constants.dart';
 import 'package:lyfer/core/router/router.dart';
 import 'package:lyfer/core/utils/snackbars/snackbar.dart';
 import 'package:lyfer/features/auth/providers/auth_provider.dart';
 import 'package:lyfer/features/habits/domain/models/habit_model.dart';
 import 'package:lyfer/features/habits/presentation/providers/habits_provider.dart';
 import 'package:lyfer/features/tasks/domain/models/task_model.dart';
+import 'package:lyfer/features/tasks/domain/utils/task_utils.dart';
 import 'package:lyfer/features/tasks/presentation/providers/tasks_provider.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -404,18 +406,7 @@ class DashboardScreen extends ConsumerWidget {
   }
 
   Color _getDueDateColor(DateTime dueDate) {
-    final now = DateTime.now();
-    final difference = dueDate.difference(now).inDays;
-
-    if (difference < 0) {
-      return Colors.red; // Overdue
-    } else if (difference == 0) {
-      return Colors.orange; // Due today
-    } else if (difference <= 2) {
-      return Colors.amber; // Due soon
-    } else {
-      return Colors.green; // Due later
-    }
+    return TaskUtils.getSimpleDueDateColor(dueDate);
   }
 
   String _getGreeting() {
