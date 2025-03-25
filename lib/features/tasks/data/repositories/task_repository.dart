@@ -72,4 +72,21 @@ class TaskRepository {
 
     await _tasksCollection.doc(id).delete();
   }
+
+  // Mark a task as completed/incomplete
+  Future<void> toggleTaskCompletion(String taskId) async {
+    if (userId == null) {
+      throw Exception('User not authenticated');
+    }
+
+    final taskDoc = _tasksCollection.doc(taskId);
+    final taskSnapshot = await taskDoc.get();
+
+    if (taskSnapshot.exists) {
+      final task = Task.fromFirestore(taskSnapshot.data()!, taskId);
+      await taskDoc.update({'isCompleted': !task.isCompleted});
+    } else {
+      throw Exception('Task not found');
+    }
+  }
 }

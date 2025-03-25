@@ -62,10 +62,7 @@ class TasksNotifier extends StateNotifier<AsyncValue<List<Task>>> {
 
   Future<void> toggleTaskCompletion(String id) async {
     try {
-      final currentTasks = state.value ?? [];
-      final task = currentTasks.firstWhere((t) => t.id == id);
-      final updatedTask = task.copyWith(isCompleted: !task.isCompleted);
-      await updateTask(updatedTask);
+      await _repository.toggleTaskCompletion(id);
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
     }
