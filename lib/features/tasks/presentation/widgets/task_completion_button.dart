@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lyfer/core/constants/app_constants.dart';
+import 'package:lyfer/core/config/constants/app_constants.dart';
 import 'package:lyfer/core/utils/snackbars/snackbar.dart';
 import 'package:lyfer/features/tasks/presentation/providers/tasks_provider.dart';
 

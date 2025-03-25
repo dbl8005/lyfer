@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:line_icons/line_icon.dart';
 import 'package:line_icons/line_icons.dart';
-import 'package:lyfer/core/constants/app_constants.dart';
+import 'package:lyfer/core/config/constants/ui_constants.dart';
 import 'package:lyfer/features/tasks/domain/utils/task_utils.dart';
 
 class TaskDueDateBadge extends StatelessWidget {
@@ -35,14 +35,14 @@ class TaskDueDateBadge extends StatelessWidget {
             size: iconSize,
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
-          SizedBox(width: AppSpacing.xs),
+          SizedBox(width: UIConstants.smallSpacing),
         ],
         Text(
           showPrefix
               ? 'Due: ${formatter.format(dueDate)}'
               : formatter.format(dueDate),
           style: TextStyle(
-            fontSize: AppFontSizes.s,
+            fontSize: 14,
             fontWeight: FontWeight.bold,
             color: color,
           ),

@@ -4,7 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:line_icons/line_icon.dart';
 import 'package:line_icons/line_icons.dart';
-import 'package:lyfer/core/constants/app_constants.dart';
+import 'package:lyfer/core/config/constants/app_constants.dart';
+import 'package:lyfer/core/config/constants/ui_constants.dart';
 import 'package:lyfer/core/router/router.dart';
 import 'package:lyfer/core/utils/dialogs/confirm_dialog.dart';
 import 'package:lyfer/core/utils/snackbars/snackbar.dart';
@@ -26,16 +27,16 @@ class TaskItem extends ConsumerWidget {
       color: task.isCompleted
           ? Colors.grey.withOpacity(0.4)
           : Theme.of(context).colorScheme.surface,
-      margin: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+      margin: const EdgeInsets.symmetric(vertical: UIConstants.smallSpacing),
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppBorderRadius.m),
+        borderRadius: BorderRadius.circular(UIConstants.radiusSmall),
         side: BorderSide(
           color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
         ),
       ),
       child: ListTile(
-        contentPadding: AppSpacing.paddingHorizS,
+        contentPadding: UIConstants.paddingAllS,
         leading: _buildCategoryIcon(),
         title: _buildTaskTitle(context),
         subtitle: _buildTaskSubtitle(context, dateFormat),
@@ -49,7 +50,7 @@ class TaskItem extends ConsumerWidget {
 
   Widget _buildCategoryIcon() {
     return Container(
-      padding: AppSpacing.paddingAllS,
+      padding: UIConstants.paddingAllS,
       decoration: BoxDecoration(
         border: Border.all(
           color: task.color ?? task.category.defaultColor,
@@ -73,7 +74,7 @@ class TaskItem extends ConsumerWidget {
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
               color: task.priority.getColor(context).withOpacity(0.2),
-              borderRadius: BorderRadius.circular(AppBorderRadius.xs),
+              borderRadius: BorderRadius.circular(UIConstants.radiusSmall),
             ),
             child: Icon(
               task.priority.icon,
@@ -117,12 +118,12 @@ class TaskItem extends ConsumerWidget {
               decoration: BoxDecoration(
                 color:
                     (task.color ?? task.category.defaultColor).withOpacity(0.2),
-                borderRadius: BorderRadius.circular(AppBorderRadius.xs),
+                borderRadius: BorderRadius.circular(UIConstants.radiusSmall),
               ),
               child: Text(
                 task.category.label,
                 style: TextStyle(
-                  fontSize: AppFontSizes.xs,
+                  fontSize: 12,
                   fontWeight: FontWeight.bold,
                   color: task.color ?? task.category.defaultColor,
                 ),

@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lyfer/core/constants/ui_constants.dart';
+import 'package:lyfer/core/config/constants/ui_constants.dart';
 import 'package:lyfer/core/router/router.dart';
 import 'package:lyfer/core/utils/dialogs/error_dialog.dart';
 import 'package:lyfer/core/utils/validators/email_validator.dart';

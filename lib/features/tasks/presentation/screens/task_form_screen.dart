@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:line_icons/line_icon.dart';
 import 'package:line_icons/line_icons.dart';
-import 'package:lyfer/core/constants/app_constants.dart';
+import 'package:lyfer/core/config/constants/app_constants.dart';
 import 'package:lyfer/features/tasks/domain/enums/task_enums.dart';
 import 'package:lyfer/features/tasks/domain/models/task_model.dart';
 import 'package:lyfer/features/tasks/presentation/providers/tasks_provider.dart';

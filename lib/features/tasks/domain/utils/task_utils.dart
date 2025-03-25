@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lyfer/core/constants/app_constants.dart';
+import 'package:lyfer/core/config/constants/app_constants.dart';
 
 class TaskUtils {
   /// Returns appropriate color based on task due date

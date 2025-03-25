@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:line_icons/line_icons.dart';
-import 'package:lyfer/core/constants/app_constants.dart';
+import 'package:lyfer/core/config/constants/app_constants.dart';
 import 'package:lyfer/core/router/router.dart';
 import 'package:lyfer/core/utils/snackbars/snackbar.dart';
 import 'package:lyfer/features/auth/presentation/providers/auth_provider.dart';
@@ -13,6 +13,8 @@ import 'package:lyfer/features/habits/presentation/providers/habits_provider.dar
 import 'package:lyfer/features/tasks/domain/models/task_model.dart';
 import 'package:lyfer/features/tasks/domain/utils/task_utils.dart';
 import 'package:lyfer/features/tasks/presentation/providers/tasks_provider.dart';
+import 'package:lyfer/features/dashboard/presentation/providers/quote_provider.dart';
+import 'package:lyfer/features/dashboard/domain/models/quote_model.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -22,6 +24,7 @@ class DashboardScreen extends ConsumerWidget {
     final user = ref.watch(authStateChangesProvider).asData?.value;
     final habitsAsync = ref.watch(habitsStreamProvider);
     final tasksAsync = ref.watch(tasksStreamProvider);
+    final quoteAsync = ref.watch(quoteProvider);
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
@@ -30,7 +33,7 @@ class DashboardScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildWelcomeHeader(user, context),
+            _buildWelcomeHeader(user, context, quoteAsync),
 
             // Stats overview
             _buildStatsOverview(context, habitsAsync, tasksAsync),
@@ -111,7 +114,13 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildWelcomeHeader(User? user, BuildContext context) {
+  Widget _buildWelcomeHeader(
+      User? user, BuildContext context, AsyncValue<QuoteModel> quoteAsync) {
+    final quote = quoteAsync.whenData(
+      (value) {
+        return value;
+      },
+    );
     final greeting = _getGreeting();
     final userName = user?.displayName ?? 'User';
     return Container(
@@ -129,6 +138,15 @@ class DashboardScreen extends ConsumerWidget {
             style: const TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '${quote.value?.text} - ${quote.value?.author}' ??
+                'Loading quote...',
+            style: const TextStyle(
+              fontSize: 16,
+              fontStyle: FontStyle.italic,
             ),
           ),
           const SizedBox(height: 8),

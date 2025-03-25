@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lyfer/core/constants/ui_constants.dart';
+import 'package:lyfer/core/config/constants/ui_constants.dart';
 
 class AuthButton extends StatelessWidget {
   final bool isLoading;
