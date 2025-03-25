@@ -4,7 +4,7 @@ import 'package:line_icons/line_icon.dart';
 import 'package:line_icons/line_icons.dart';
 import 'package:lyfer/core/theme/theme_provider.dart';
 import 'package:lyfer/core/utils/dialogs/confirm_dialog.dart';
-import 'package:lyfer/features/auth/providers/auth_provider.dart';
+import 'package:lyfer/features/auth/presentation/providers/auth_provider.dart';
 import 'package:lyfer/features/settings/presentation/widgets/settings_profile_card.dart';
 import 'package:lyfer/features/settings/presentation/widgets/settings_tile.dart';
 

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lyfer/features/auth/presentation/screens/verify_email_screen.dart';
-import 'package:lyfer/features/auth/providers/auth_provider.dart';
+import 'package:lyfer/features/auth/presentation/providers/auth_provider.dart';
 import 'package:lyfer/features/auth/presentation/screens/login_screen.dart';
 import 'package:lyfer/features/auth/presentation/screens/signup_screen.dart';
 import 'package:lyfer/features/habits/domain/models/habit_model.dart';
@@ -46,11 +46,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
   return GoRouter(
     initialLocation: AppRouterConsts.login,
+    debugLogDiagnostics: true, // Add this for debugging
     redirect: (context, state) {
       final isLoggedIn = authState != null;
-      final isLoginRoute = state.path == AppRouterConsts.login;
-      final isSignupRoute = state.path == AppRouterConsts.signup;
-      final isVerifyRoute = state.path == AppRouterConsts.verifyEmail;
+      final isLoginRoute = state.matchedLocation == AppRouterConsts.login;
+      final isSignupRoute = state.matchedLocation == AppRouterConsts.signup;
+      final isVerifyRoute =
+          state.matchedLocation == AppRouterConsts.verifyEmail;
 
       // If not logged in, only allow access to login and signup
       if (!isLoggedIn && !isLoginRoute && !isSignupRoute) {

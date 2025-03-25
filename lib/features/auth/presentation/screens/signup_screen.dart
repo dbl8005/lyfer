@@ -8,7 +8,7 @@ import 'package:lyfer/core/utils/dialogs/error_dialog.dart';
 import 'package:lyfer/core/utils/validators/email_validator.dart';
 import 'package:lyfer/core/utils/validators/password_validator.dart';
 import 'package:lyfer/features/auth/constants/auth_constants.dart';
-import 'package:lyfer/features/auth/providers/auth_provider.dart';
+import 'package:lyfer/features/auth/presentation/providers/auth_provider.dart';
 import 'package:lyfer/features/auth/presentation/widgets/auth_button.dart';
 import 'package:lyfer/features/auth/presentation/widgets/confirm_password_form_field.dart';
 import 'package:lyfer/features/auth/presentation/widgets/email_form_field.dart';

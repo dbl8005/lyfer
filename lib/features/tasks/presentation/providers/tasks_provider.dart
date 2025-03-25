@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lyfer/features/tasks/data/repositories/task_repository.dart';
 import 'package:lyfer/features/tasks/domain/models/task_model.dart';
-import 'package:lyfer/features/auth/providers/auth_provider.dart';
+import 'package:lyfer/features/auth/presentation/providers/auth_provider.dart';
 
 // Create a task repository provider that depends on the authenticated user
 final taskRepositoryProvider = Provider<TaskRepository>((ref) {

@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lyfer/features/auth/models/user_model.dart';
-import 'package:lyfer/features/auth/services/auth_service.dart';
+import 'package:lyfer/features/auth/domain/models/user_model.dart';
+import 'package:lyfer/features/auth/data/services/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 // Provider for the AuthService instance

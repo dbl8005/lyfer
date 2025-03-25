@@ -3,11 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:line_icons/line_icons.dart';
+import 'package:lyfer/core/constants/app_constants.dart';
 import 'package:lyfer/core/constants/ui_constants.dart';
 import 'package:lyfer/core/router/router.dart';
 import 'package:lyfer/core/utils/snackbars/snackbar.dart';
 import 'package:lyfer/features/auth/constants/auth_constants.dart';
-import 'package:lyfer/features/auth/providers/auth_provider.dart';
+import 'package:lyfer/features/auth/presentation/providers/auth_provider.dart';
 import 'package:lyfer/features/auth/presentation/widgets/auth_button.dart';
 import 'package:lyfer/features/auth/presentation/widgets/email_form_field.dart';
 import 'package:lyfer/features/auth/presentation/widgets/password_form_field.dart';
@@ -157,6 +158,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       return null;
                     },
                   ),
+                  const SizedBox(height: AppSpacing.s),
+                  PasswordFormField(
+                    controller: _passwordController,
+                    validator: (value) {
+                      return null;
+                    },
+                  ),
                 ],
               ),
             ),
@@ -194,6 +202,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const Text("Don't have an account?"),
                 TextButton(
                   onPressed: () {
+                    // Use GoRouter instead of Navigator for consistent navigation
                     context.go(AppRouterConsts.signup);
                   },
                   child: const Text('Sign Up'),
