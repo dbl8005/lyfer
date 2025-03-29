@@ -37,14 +37,17 @@ class TaskDueDateBadge extends StatelessWidget {
           ),
           SizedBox(width: UIConstants.smallSpacing),
         ],
-        Text(
-          showPrefix
-              ? 'Due: ${formatter.format(dueDate)}'
-              : formatter.format(dueDate),
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: color,
+        Expanded(
+          child: Text(
+            showPrefix
+                ? 'Due: ${formatter.format(dueDate)}'
+                : formatter.format(dueDate),
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],

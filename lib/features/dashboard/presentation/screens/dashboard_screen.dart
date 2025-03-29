@@ -7,6 +7,7 @@ import 'package:line_icons/line_icons.dart';
 import 'package:lyfer/core/config/constants/app_constants.dart';
 import 'package:lyfer/core/router/router.dart';
 import 'package:lyfer/core/utils/snackbars/snackbar.dart';
+import 'package:lyfer/core/widgets/custom_card.dart';
 import 'package:lyfer/features/auth/presentation/providers/auth_provider.dart';
 import 'package:lyfer/features/habits/domain/models/habit_model.dart';
 import 'package:lyfer/features/habits/presentation/providers/habits_provider.dart';
@@ -215,33 +216,31 @@ class DashboardScreen extends ConsumerWidget {
     required IconData icon,
     required Color color,
   }) {
-    return Card(
+    return CustomCard(
+      shadowColor: Theme.of(context).shadowColor,
       elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(icon, color: color),
-                const SizedBox(width: 8),
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleSmall,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: color),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: color,
                 ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              value,
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: color,
-                  ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -282,7 +281,7 @@ class DashboardScreen extends ConsumerWidget {
       children: habits.map((habit) {
         final isCompleted = habit.isCompletedForDay(DateTime.now());
 
-        return Card(
+        return CustomCard(
           margin: const EdgeInsets.only(bottom: 8),
           child: ListTile(
             leading: Container(
@@ -363,14 +362,16 @@ class DashboardScreen extends ConsumerWidget {
 
     return Column(
       children: tasks.map((task) {
-        return Card(
+        return CustomCard(
           margin: const EdgeInsets.only(bottom: 8),
           child: ListTile(
             leading: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: task.color?.withOpacity(0.2) ??
-                    task.category.defaultColor.withOpacity(0.2),
+                border: Border.all(
+                  color: task.color ?? task.category.defaultColor,
+                  width: 2,
+                ),
                 shape: BoxShape.circle,
               ),
               child: Icon(

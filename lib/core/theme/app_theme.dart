@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:lyfer/core/config/constants/ui_constants.dart';
+import 'package:lyfer/core/theme/colors.dart';
 
 /// App theme configuration
 class AppTheme {
+  // check is dark mode on
+  static bool isDarkMode(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark;
+  }
+
   // Light theme
   static ThemeData lightTheme = ThemeData(
     primaryColor: UIConstants.primaryColor,
@@ -17,6 +23,8 @@ class AppTheme {
         borderRadius: BorderRadius.circular(UIConstants.radiusMedium),
       ),
     ),
+    cardColor: AppColors.lightCardBackground,
+    shadowColor: AppColors.lightCardShadow,
   );
 
   // Dark theme
@@ -33,5 +41,7 @@ class AppTheme {
         borderRadius: BorderRadius.circular(UIConstants.radiusMedium),
       ),
     ),
+    cardColor: AppColors.darkCardBackground,
+    shadowColor: AppColors.darkCardShadow,
   );
 }

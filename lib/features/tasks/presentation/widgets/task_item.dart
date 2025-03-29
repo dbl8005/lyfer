@@ -9,6 +9,7 @@ import 'package:lyfer/core/config/constants/ui_constants.dart';
 import 'package:lyfer/core/router/router.dart';
 import 'package:lyfer/core/utils/dialogs/confirm_dialog.dart';
 import 'package:lyfer/core/utils/snackbars/snackbar.dart';
+import 'package:lyfer/core/widgets/custom_card.dart';
 import 'package:lyfer/features/tasks/domain/models/task_model.dart';
 import 'package:lyfer/features/tasks/presentation/providers/tasks_provider.dart';
 import 'package:lyfer/features/tasks/domain/enums/task_enums.dart';
@@ -23,18 +24,8 @@ class TaskItem extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final dateFormat = DateFormat('MMM dd, yyyy');
 
-    return Card(
-      color: task.isCompleted
-          ? Colors.grey.withOpacity(0.4)
-          : Theme.of(context).colorScheme.surface,
+    return CustomCard(
       margin: const EdgeInsets.symmetric(vertical: UIConstants.smallSpacing),
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(UIConstants.radiusSmall),
-        side: BorderSide(
-          color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
-        ),
-      ),
       child: ListTile(
         contentPadding: UIConstants.paddingAllS,
         leading: _buildCategoryIcon(),
@@ -109,31 +100,8 @@ class TaskItem extends ConsumerWidget {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-        Row(
-          children: [
-            // Category indicator
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              margin: const EdgeInsets.only(right: 6),
-              decoration: BoxDecoration(
-                color:
-                    (task.color ?? task.category.defaultColor).withOpacity(0.2),
-                borderRadius: BorderRadius.circular(UIConstants.radiusSmall),
-              ),
-              child: Text(
-                task.category.label,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: task.color ?? task.category.defaultColor,
-                ),
-              ),
-            ),
-            // Due date if available
-            if (task.dueDate != null)
-              TaskDueDateBadge(dueDate: task.dueDate!, dateFormat: dateFormat),
-          ],
-        ),
+        if (task.dueDate != null)
+          TaskDueDateBadge(dueDate: task.dueDate!, dateFormat: dateFormat),
       ],
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lyfer/core/widgets/custom_card.dart';
 
 class SettingsTile extends ConsumerWidget {
   const SettingsTile({
@@ -18,16 +19,9 @@ class SettingsTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Card(
-      color: Theme.of(context).colorScheme.surface,
+    return CustomCard(
       margin: EdgeInsets.zero, // Remove default card margin
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
-        ),
-      ),
+
       child: ListTile(
         onTap: onTap,
         leading: leading,

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
+import 'package:lyfer/core/theme/app_theme.dart';
+import 'package:lyfer/core/theme/colors.dart';
 import 'package:lyfer/features/home/presentation/screens/home_screen.dart';
 
 class CustomBottomNav extends StatelessWidget {
@@ -17,6 +19,8 @@ class CustomBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Check if the current theme is dark mode
+    final isDarkMode = AppTheme.isDarkMode(context);
     // Make the overall container transparent
     return Container(
       // Add padding instead of margin to ensure touchable area remains the same
@@ -28,7 +32,9 @@ class CustomBottomNav extends StatelessWidget {
           borderRadius: BorderRadius.circular(25),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.3),
+              color: isDarkMode
+                  ? Colors.black.withOpacity(0.5)
+                  : Colors.grey.withOpacity(0.5),
               blurRadius: 10,
               offset: const Offset(0, 5),
             ),
@@ -37,6 +43,7 @@ class CustomBottomNav extends StatelessWidget {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(25),
           child: GNav(
+            textSize: 16,
             iconSize: 30,
             activeColor: Theme.of(context).colorScheme.primaryContainer,
             color: Colors.grey,
@@ -47,7 +54,7 @@ class CustomBottomNav extends StatelessWidget {
             onTabChange: (index) {
               ref.read(currentIndexProvider.notifier).state = index;
             },
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 16),
             gap: 8,
             tabs: [
               GButton(icon: iconList[0], text: 'Dashboard'),

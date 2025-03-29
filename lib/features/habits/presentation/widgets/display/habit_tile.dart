@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:line_icons/line_icon.dart';
@@ -7,6 +8,7 @@ import 'package:lyfer/core/config/enums/icon_enum.dart';
 import 'package:lyfer/core/router/router.dart';
 import 'package:lyfer/core/utils/dialogs/confirm_dialog.dart';
 import 'package:lyfer/core/utils/snackbars/snackbar.dart';
+import 'package:lyfer/core/widgets/custom_card.dart';
 import 'package:lyfer/features/habits/domain/enums/habit_enums.dart';
 import 'package:lyfer/features/habits/domain/models/habit_model.dart';
 import 'package:lyfer/features/habits/presentation/providers/habits_provider.dart';
@@ -49,18 +51,9 @@ class HabitTile extends ConsumerWidget {
     final currentStreak = StreakCalculator.calculateStreak(
         habit.completedDates.toList(), habit.frequency, habit.timesPerPeriod);
 
-    return Card(
-      color: isCompletedForDate
-          ? Colors.grey.withOpacity(0.4)
-          : Theme.of(context).colorScheme.surface,
+    return CustomCard(
       margin: EdgeInsets.zero, // Remove default card margin
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
-        ),
-      ),
+
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
         leading: Container(
@@ -211,32 +204,6 @@ class HabitTile extends ConsumerWidget {
                 // Call the service to toggle habit completion
                 final habitService = ref.read(habitsProvider.notifier);
                 habitService.toggleHabitCompletion(habit.id!, selectedDate);
-
-                // Show feedback with snackbar
-                String message;
-                if (habit.frequency == Frequency.daily) {
-                  message = isCompletedForDate
-                      ? 'Habit marked as incomplete'
-                      : 'Habit completed for today!';
-                } else {
-                  final remainingCompletions =
-                      habit.timesPerPeriod - completionsThisPeriod;
-                  message = isCompletedForDate
-                      ? 'Removed completion for today'
-                      : remainingCompletions <= 0
-                          ? 'Goal reached for this ${habit.periodLabel}!'
-                          : '${remainingCompletions - 1} more to go this ${habit.periodLabel}';
-                }
-
-                isCompletedForDate
-                    ? AppSnackbar.showSuccess(
-                        context: context,
-                        message: message,
-                      )
-                    : AppSnackbar.showError(
-                        context: context,
-                        message: message,
-                      );
               },
             ),
           ],
@@ -252,27 +219,27 @@ class HabitTile extends ConsumerWidget {
     );
   }
 
-  // Add a method to show priority indicator
-  Widget _buildPriorityIndicator(BuildContext context) {
-    // Only show if priority is not none
-    if (habit.priority == Priority.none) {
-      return const SizedBox.shrink();
-    }
+//   // Add a method to show priority indicator
+//   Widget _buildPriorityIndicator(BuildContext context) {
+//     // Only show if priority is not none
+//     if (habit.priority == Priority.none) {
+//       return const SizedBox.shrink();
+//     }
 
-    return Tooltip(
-      message: 'Priority: ${habit.priority.label}',
-      child: Container(
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          color: habit.priority.getColor(context).withOpacity(0.2),
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: Icon(
-          habit.priority.icon,
-          size: 16,
-          color: habit.priority.getColor(context),
-        ),
-      ),
-    );
-  }
+//     return Tooltip(
+//       message: 'Priority: ${habit.priority.label}',
+//       child: Container(
+//         padding: const EdgeInsets.all(4),
+//         decoration: BoxDecoration(
+//           color: habit.priority.getColor(context).withOpacity(0.2),
+//           borderRadius: BorderRadius.circular(4),
+//         ),
+//         child: Icon(
+//           habit.priority.icon,
+//           size: 16,
+//           color: habit.priority.getColor(context),
+//         ),
+//       ),
+//     );
+//   }
 }
