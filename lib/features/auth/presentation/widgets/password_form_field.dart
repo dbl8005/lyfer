@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:lyfer/core/utils/validators/password_validator.dart';
+import 'package:lyfer/features/auth/constants/auth_constants.dart';
 
 class PasswordFormField extends StatefulWidget {
   final TextEditingController controller;
   final String? Function(String?) validator;
+  final TextInputAction textInputAction;
 
   const PasswordFormField({
     super.key,
     required this.controller,
     required this.validator,
+    this.textInputAction = TextInputAction.done,
   });
 
   @override
@@ -23,7 +26,7 @@ class _PasswordFormFieldState extends State<PasswordFormField> {
     return TextFormField(
       controller: widget.controller,
       decoration: InputDecoration(
-        labelText: 'Password',
+        labelText: AuthConstants.passwordLabel,
         border: const OutlineInputBorder(),
         prefixIcon: const Icon(Icons.lock),
         suffixIcon: IconButton(
@@ -38,6 +41,7 @@ class _PasswordFormFieldState extends State<PasswordFormField> {
       ),
       obscureText: _obscurePassword,
       validator: widget.validator,
+      textInputAction: widget.textInputAction,
     );
   }
 }

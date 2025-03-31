@@ -11,10 +11,6 @@ class UIConstants {
   static const double spacing48 = 48;
 
   // Radius
-  static const double radiusSmall = 8;
-  static const double radiusMedium = 12;
-  static const double radiusLarge = 16;
-  static const double radiusExtraLarge = 24;
 
   // Animations
   static const Duration animationDurationShort = Duration(milliseconds: 200);

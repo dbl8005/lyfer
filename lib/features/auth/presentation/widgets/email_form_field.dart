@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lyfer/core/utils/validators/email_validator.dart';
+import 'package:lyfer/features/auth/constants/auth_constants.dart';
 
 class EmailFormField extends StatelessWidget {
   final TextEditingController controller;
@@ -16,12 +17,14 @@ class EmailFormField extends StatelessWidget {
     return TextFormField(
       controller: controller,
       decoration: const InputDecoration(
-        labelText: 'Email',
+        labelText: AuthConstants.emailLabel,
         border: OutlineInputBorder(),
         prefixIcon: Icon(Icons.email),
       ),
       keyboardType: TextInputType.emailAddress,
       validator: validator,
+      autocorrect: false,
+      textInputAction: TextInputAction.next,
     );
   }
 }

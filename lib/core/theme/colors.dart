@@ -19,6 +19,8 @@ class AppColors {
   static const Color lightTextSecondary = Color(0xFF5E6687);
   static const Color lightDivider = Color(0xFFEBEFF5);
   static const Color lightInputBackground = Color(0xFFEEF0F7);
+  static const Color lightCardBackground = Color(0xFFF8F9FD);
+  static const Color lightCardShadow = Color(0xFFB0B7D2);
 
   // Dark Theme
   static const Color darkBackground = Color(0xFF12151D);
@@ -27,6 +29,8 @@ class AppColors {
   static const Color darkTextSecondary = Color(0xFF9AA1BC);
   static const Color darkDivider = Color(0xFF2D3349);
   static const Color darkInputBackground = Color(0xFF252A3D);
+  static const Color darkCardBackground = Color(0xFF1C2030);
+  static const Color darkCardShadow = Color(0xFF2D3349);
 
   // Gradients
   static const LinearGradient primaryGradient = LinearGradient(
