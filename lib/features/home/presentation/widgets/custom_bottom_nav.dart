@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:lyfer/core/theme/app_theme.dart';
-import 'package:lyfer/core/theme/colors.dart';
 import 'package:lyfer/features/home/presentation/screens/home_screen.dart';
 
 class CustomBottomNav extends StatelessWidget {
@@ -22,49 +20,39 @@ class CustomBottomNav extends StatelessWidget {
     // Check if the current theme is dark mode
     final isDarkMode = AppTheme.isDarkMode(context);
     // Make the overall container transparent
-    return Container(
-      // Add padding instead of margin to ensure touchable area remains the same
-      padding: const EdgeInsets.all(20),
-      color: Colors.transparent,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(25),
-          boxShadow: [
-            BoxShadow(
-              color: isDarkMode
-                  ? Colors.black.withOpacity(0.5)
-                  : Colors.grey.withOpacity(0.5),
-              blurRadius: 10,
-              offset: const Offset(0, 5),
-            ),
-          ],
+    return BottomNavigationBar(
+      elevation: 0,
+      selectedItemColor: Theme.of(context).colorScheme.primaryContainer,
+      unselectedItemColor: Colors.grey,
+      currentIndex: currentIndex,
+      onTap: (index) {
+        ref.read(currentIndexProvider.notifier).state = index;
+      },
+      type: BottomNavigationBarType.fixed,
+      selectedFontSize: 14,
+      unselectedFontSize: 12,
+      items: [
+        BottomNavigationBarItem(
+          icon: Icon(iconList[0]),
+          label: 'Dashboard',
+          backgroundColor: Colors.transparent,
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(25),
-          child: GNav(
-            textSize: 16,
-            iconSize: 30,
-            activeColor: Theme.of(context).colorScheme.primaryContainer,
-            color: Colors.grey,
-            backgroundColor: Colors.transparent, // Make this transparent
-            tabBackgroundColor:
-                Theme.of(context).colorScheme.primary.withOpacity(0.1),
-            selectedIndex: currentIndex,
-            onTabChange: (index) {
-              ref.read(currentIndexProvider.notifier).state = index;
-            },
-            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 16),
-            gap: 8,
-            tabs: [
-              GButton(icon: iconList[0], text: 'Dashboard'),
-              GButton(icon: iconList[1], text: 'Habits'),
-              GButton(icon: iconList[2], text: 'Tasks'),
-              GButton(icon: iconList[3], text: 'Settings'),
-            ],
-          ),
+        BottomNavigationBarItem(
+          icon: Icon(iconList[1]),
+          label: 'Habits',
+          backgroundColor: Colors.transparent,
         ),
-      ),
+        BottomNavigationBarItem(
+          icon: Icon(iconList[2]),
+          label: 'Tasks',
+          backgroundColor: Colors.transparent,
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(iconList[3]),
+          label: 'Settings',
+          backgroundColor: Colors.transparent,
+        ),
+      ],
     );
   }
 }
