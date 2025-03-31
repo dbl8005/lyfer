@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:line_icons/line_icon.dart';
@@ -9,6 +8,10 @@ import 'package:lyfer/core/router/router.dart';
 import 'package:lyfer/core/utils/dialogs/confirm_dialog.dart';
 import 'package:lyfer/core/utils/snackbars/snackbar.dart';
 import 'package:lyfer/core/widgets/custom_card.dart';
+import 'package:lyfer/core/widgets/circular_icon.dart';
+import 'package:lyfer/core/widgets/progress_indicator_with_label.dart';
+import 'package:lyfer/core/widgets/responsive_padding.dart';
+import 'package:lyfer/core/widgets/status_indicator.dart';
 import 'package:lyfer/features/habits/domain/enums/habit_enums.dart';
 import 'package:lyfer/features/habits/domain/models/habit_model.dart';
 import 'package:lyfer/features/habits/presentation/providers/habits_provider.dart';
@@ -31,6 +34,7 @@ class HabitTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final habitService = ref.read(habitsProvider.notifier);
+    final theme = Theme.of(context);
 
     // Check if habit is completed for the current period
     final isCompletedForPeriod = habit.isCompletedForCurrentPeriod();
@@ -54,192 +58,142 @@ class HabitTile extends ConsumerWidget {
     return CustomCard(
       margin: EdgeInsets.zero, // Remove default card margin
 
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-        leading: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            border: Border.all(
+      child: LayoutBuilder(builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 300;
+
+        return ResponsivePadding(
+          child: ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: CircularIcon(
+              icon: habit.category.icon,
               color: habit.color ?? habit.category.defaultColor,
-              width: 2,
+              size: isNarrow ? 36 : 44,
+              iconSize: isNarrow ? 20 : 24,
             ),
-            shape: BoxShape.circle,
-          ),
-          child: LineIcon(
-            habit.category.icon,
-            size: 24,
-            color: habit.color ?? habit.category.defaultColor,
-          ),
-        ),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: habit.priority.getColor(context).withOpacity(0.2),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Icon(
-                habit.priority.icon,
-                size: 16,
-                color: habit.priority.getColor(context),
-              ),
+            title: Row(
+              children: [
+                StatusIndicator(
+                  icon: habit.priority.icon,
+                  color: habit.priority.getColor(context),
+                  tooltip: 'Priority: ${habit.priority.name}',
+                ),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    habit.name,
+                    style: theme.textTheme.titleMedium,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 4),
-            Expanded(
-              child: Text(
-                habit.name,
-                style: Theme.of(context).textTheme.titleMedium,
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-              ),
-            ),
-          ],
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (habit.description.isNotEmpty)
-              Text(
-                style: Theme.of(context).textTheme.bodySmall,
-                habit.description,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            if (habit.frequency != Frequency.daily)
-              Row(
-                children: [
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (habit.description.isNotEmpty)
                   Text(
-                    '${completionsThisPeriod}/${habit.timesPerPeriod} this ${habit.periodLabel}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                    habit.description,
+                    style: theme.textTheme.bodySmall,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: LinearProgressIndicator(
-                      value: completionsThisPeriod / habit.timesPerPeriod,
-                      backgroundColor:
-                          Theme.of(context).colorScheme.surfaceVariant,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        isCompletedForPeriod
-                            ? Colors.green
-                            : Theme.of(context).colorScheme.primary,
-                      ),
-                      minHeight: 5,
-                    ),
+                if (habit.frequency != Frequency.daily)
+                  ProgressIndicatorWithLabel(
+                    label:
+                        '${completionsThisPeriod}/${habit.timesPerPeriod} this ${habit.periodLabel}',
+                    progress: completionsThisPeriod / habit.timesPerPeriod,
+                    progressColor: isCompletedForPeriod
+                        ? Colors.green
+                        : theme.colorScheme.primary,
                   ),
-                ],
-              ),
-            if (habit.selectedDays.isNotEmpty && habit.selectedDays.length < 7)
-              ActiveDaysIndicator(
-                selectedDays: habit.selectedDays.toList(),
-                frequency: habit.frequency,
-              ),
-          ],
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Streak count container
-            Column(
+                if (habit.selectedDays.isNotEmpty &&
+                    habit.selectedDays.length < 7)
+                  ActiveDaysIndicator(
+                    selectedDays: habit.selectedDays.toList(),
+                    frequency: habit.frequency,
+                  ),
+              ],
+            ),
+            trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
+                // Streak count container
                 StreakCounter(currentStreak: currentStreak),
-              ],
-            ),
-            // pop up menu for more options
 
-            PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert),
-              onSelected: (value) {
-                switch (value) {
-                  case 'edit':
-                    context.push('${AppRouterConsts.habitEdit}/${habit.id}',
-                        extra: habit);
-                  case 'delete':
-                    ConfirmDialog.show(
-                      context: context,
-                      title: 'Delete Habit',
-                      content: 'Are you sure you want to delete this habit?',
-                      onConfirm: () {
-                        habitService.deleteHabit(habit.id!);
-                        Navigator.of(context).pop();
-                      },
-                    );
-                }
-              },
-              itemBuilder: (context) => [
-                const PopupMenuItem(
-                  value: 'edit',
-                  child: Row(
-                    children: [
-                      Icon(LineIcons.pen),
-                      SizedBox(width: 8),
-                      Text('Edit'),
-                    ],
-                  ),
+                // More options menu
+                PopupMenuButton<String>(
+                  icon: Icon(Icons.more_vert, size: isNarrow ? 20 : 24),
+                  onSelected: (value) {
+                    switch (value) {
+                      case 'edit':
+                        context.push('${AppRouterConsts.habitEdit}/${habit.id}',
+                            extra: habit);
+                      case 'delete':
+                        ConfirmDialog.show(
+                          context: context,
+                          title: 'Delete Habit',
+                          content:
+                              'Are you sure you want to delete this habit?',
+                          onConfirm: () {
+                            habitService.deleteHabit(habit.id!);
+                            Navigator.of(context).pop();
+                          },
+                        );
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          Icon(LineIcons.pen),
+                          SizedBox(width: 8),
+                          Text('Edit'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(LineIcons.trash),
+                          SizedBox(width: 8),
+                          Text('Delete'),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                const PopupMenuItem(
-                  value: 'delete',
-                  child: Row(
-                    children: [
-                      Icon(LineIcons.trash),
-                      SizedBox(width: 8),
-                      Text('Delete'),
-                    ],
+
+                // Completion button
+                IconButton(
+                  icon: Icon(
+                    isCompletedForDate
+                        ? Icons.check_circle
+                        : Icons.circle_outlined,
+                    color: isCompletedForDate ? Colors.green : Colors.grey,
+                    size: isNarrow ? 20 : 24,
                   ),
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  onPressed: () {
+                    // Call the service to toggle habit completion
+                    habitService.toggleHabitCompletion(habit.id!, selectedDate);
+                  },
                 ),
               ],
             ),
-            // Completion button
-            IconButton(
-              icon: Icon(
-                isCompletedForDate ? Icons.check_circle : Icons.circle_outlined,
-                color: isCompletedForDate ? Colors.green : Colors.grey,
-              ),
-              onPressed: () {
-                // Call the service to toggle habit completion
-                final habitService = ref.read(habitsProvider.notifier);
-                habitService.toggleHabitCompletion(habit.id!, selectedDate);
-              },
-            ),
-          ],
-        ),
-        onTap: () {
-          // Navigate to habit details
-          context.push(
-            '${AppRouterConsts.habitDetails}/${habit.id}',
-            extra: habit,
-          );
-        },
-      ),
+            onTap: () {
+              // Navigate to habit details
+              context.push(
+                '${AppRouterConsts.habitDetails}/${habit.id}',
+                extra: habit,
+              );
+            },
+          ),
+        );
+      }),
     );
   }
-
-//   // Add a method to show priority indicator
-//   Widget _buildPriorityIndicator(BuildContext context) {
-//     // Only show if priority is not none
-//     if (habit.priority == Priority.none) {
-//       return const SizedBox.shrink();
-//     }
-
-//     return Tooltip(
-//       message: 'Priority: ${habit.priority.label}',
-//       child: Container(
-//         padding: const EdgeInsets.all(4),
-//         decoration: BoxDecoration(
-//           color: habit.priority.getColor(context).withOpacity(0.2),
-//           borderRadius: BorderRadius.circular(4),
-//         ),
-//         child: Icon(
-//           habit.priority.icon,
-//           size: 16,
-//           color: habit.priority.getColor(context),
-//         ),
-//       ),
-//     );
-//   }
 }

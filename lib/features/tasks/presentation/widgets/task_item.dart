@@ -25,9 +25,7 @@ class TaskItem extends ConsumerWidget {
     final dateFormat = DateFormat('MMM dd, yyyy');
 
     return CustomCard(
-      margin: const EdgeInsets.symmetric(vertical: UIConstants.smallSpacing),
       child: ListTile(
-        contentPadding: UIConstants.paddingAllS,
         leading: _buildCategoryIcon(),
         title: _buildTaskTitle(context),
         subtitle: _buildTaskSubtitle(context, dateFormat),
