@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lyfer/core/widgets/custom_card.dart';
+import 'package:lyfer/core/shared/widgets/custom_card.dart';
 import 'package:lyfer/features/auth/presentation/providers/auth_provider.dart';
 
 class SettingsProfileCard extends ConsumerWidget {

@@ -5,6 +5,8 @@ import 'package:line_icons/line_icon.dart';
 import 'package:line_icons/line_icons.dart';
 
 import 'package:lyfer/core/config/enums/icon_enum.dart';
+import 'package:lyfer/core/shared/widgets/form/category_selector.dart';
+import 'package:lyfer/core/shared/widgets/form/custom_text_field.dart';
 import 'package:lyfer/core/utils/snackbars/snackbar.dart';
 import 'package:lyfer/features/habits/domain/enums/habit_enums.dart';
 import 'package:lyfer/features/habits/domain/models/habit_model.dart';
@@ -318,7 +320,7 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
             // Replace existing icon picker with category selector
             _buildCategorySelector(),
             const SizedBox(height: 16),
-            HabitTextField(
+            CustomFormTextField(
               controller: _nameController,
               label: 'Habit Name',
               hint: 'Enter habit name',
@@ -330,7 +332,7 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
               },
             ),
             const SizedBox(height: 16),
-            HabitTextField(
+            CustomFormTextField(
               controller: _descriptionController,
               label: 'Description',
               hint: 'Enter habit description',
@@ -406,7 +408,7 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
                   ),
                   SizedBox(
                     width: 120,
-                    child: HabitTextField(
+                    child: CustomFormTextField(
                       controller: TextEditingController(
                           text: _timesPerPeriod.toString()),
                       label: '',

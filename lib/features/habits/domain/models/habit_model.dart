@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:lyfer/core/shared/models/category_model.dart';
 import 'package:lyfer/features/habits/domain/enums/habit_enums.dart';
 import 'package:lyfer/features/habits/domain/models/habit_categories.dart';
 
@@ -293,18 +294,13 @@ class HabitModel {
   }
 
   // Add helper getter for category
-  HabitCategoryModel get category {
+  CategoryModel get category {
     try {
       return findCategoryById(categoryId) ??
-          habitCategories.firstWhere((c) => c.id == 'other');
+          appCategories.firstWhere((c) => c.id == 'other');
     } catch (e) {
       // Fallback to ensure we always return a valid category
-      return HabitCategoryModel(
-        id: 'other',
-        name: 'Other',
-        icon: Icons.star,
-        defaultColor: Colors.grey,
-      );
+      return findCategoryById('other')!;
     }
   }
 

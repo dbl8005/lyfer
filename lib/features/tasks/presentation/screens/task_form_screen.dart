@@ -5,6 +5,11 @@ import 'package:intl/intl.dart';
 import 'package:line_icons/line_icon.dart';
 import 'package:line_icons/line_icons.dart';
 import 'package:lyfer/core/config/constants/app_constants.dart';
+import 'package:lyfer/core/shared/models/category_model.dart';
+import 'package:lyfer/core/shared/widgets/form/category_selector.dart';
+import 'package:lyfer/core/shared/widgets/form/custom_text_field.dart';
+import 'package:lyfer/features/habits/domain/enums/habit_enums.dart';
+import 'package:lyfer/features/habits/presentation/widgets/form/priority_selector.dart';
 import 'package:lyfer/features/tasks/domain/enums/task_enums.dart';
 import 'package:lyfer/features/tasks/domain/models/task_model.dart';
 import 'package:lyfer/features/tasks/presentation/providers/tasks_provider.dart';
@@ -22,16 +27,16 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _titleController;
   late final TextEditingController _descriptionController;
-  DateTime? _dueDate;
   bool _isCompleted = false;
   bool _isSubmitting = false;
   bool _isLoading = true;
   Task? _task;
 
   // New properties for category and priority
-  TaskCategory _selectedCategory = TaskCategory.other;
-  TaskPriority _selectedPriority = TaskPriority.none;
-  Color? _selectedColor;
+  Priority _selectedPriority = Priority.none;
+  Color? _selectedColor = Colors.grey;
+  String _selectedCategoryId = 'other';
+  DateTime? _dueDate;
 
   @override
   void initState() {
@@ -61,7 +66,7 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
         _descriptionController.text = task.description;
         _dueDate = task.dueDate;
         _isCompleted = task.isCompleted;
-        _selectedCategory = task.category;
+        _selectedCategoryId = task.categoryId;
         _selectedPriority = task.priority;
         _selectedColor = task.color;
         _isLoading = false;
@@ -74,105 +79,6 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
     _titleController.dispose();
     _descriptionController.dispose();
     super.dispose();
-  }
-
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _dueDate ?? DateTime.now(),
-      firstDate: DateTime.now(),
-      lastDate: DateTime(2100),
-    );
-    if (picked != null && picked != _dueDate) {
-      setState(() {
-        _dueDate = picked;
-      });
-    }
-  }
-
-  Future<void> _selectColor(BuildContext context) async {
-    final Color? pickedColor = await showDialog<Color>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Select a color'),
-          content: SingleChildScrollView(
-            child: Wrap(
-              spacing: 10,
-              children: [
-                ...[
-                  Colors.red,
-                  Colors.pink,
-                  Colors.purple,
-                  Colors.deepPurple,
-                  Colors.indigo,
-                  Colors.blue,
-                  Colors.lightBlue,
-                  Colors.cyan,
-                  Colors.teal,
-                  Colors.green,
-                  Colors.lightGreen,
-                  Colors.lime,
-                  Colors.yellow,
-                  Colors.amber,
-                  Colors.orange,
-                  Colors.deepOrange,
-                  Colors.brown,
-                  Colors.grey,
-                  Colors.blueGrey,
-                ].map((Color color) {
-                  return GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).pop(color);
-                    },
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(vertical: 5),
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: color,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: _selectedColor == color
-                              ? Colors.black
-                              : Colors.transparent,
-                          width: 2,
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-                // Add a clear option
-                GestureDetector(
-                  onTap: () {
-                    Navigator.of(context).pop(null);
-                  },
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 5),
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.black),
-                    ),
-                    child: const Center(
-                      child: Icon(Icons.clear, size: 20),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-
-    if (pickedColor != _selectedColor && mounted) {
-      setState(() {
-        _selectedColor = pickedColor;
-      });
-    }
   }
 
   Future<void> _submitForm() async {
@@ -188,7 +94,7 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
           description: _descriptionController.text,
           dueDate: _dueDate,
           isCompleted: _isCompleted,
-          category: _selectedCategory,
+          categoryId: _selectedCategoryId,
           priority: _selectedPriority,
           color: _selectedColor,
           createdAt: _task?.createdAt,
@@ -244,6 +150,12 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
         ),
+        actions: [
+          IconButton(
+            icon: const LineIcon.check(),
+            onPressed: _isSubmitting ? null : _submitForm,
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -253,190 +165,52 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                TextFormField(
-                  controller: _titleController,
-                  decoration: const InputDecoration(
-                    labelText: 'Title',
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a title';
-                    }
-                    return null;
-                  },
-                ),
+                _buildCategorySelector(),
                 const SizedBox(height: 16),
-                TextFormField(
+                CustomFormTextField(
+                    controller: _titleController, label: 'Title'),
+                const SizedBox(height: 16),
+                CustomFormTextField(
                   controller: _descriptionController,
-                  decoration: const InputDecoration(
-                    labelText: 'Description (optional)',
-                    border: OutlineInputBorder(),
-                  ),
-                  maxLines: 3,
+                  label: 'Description',
+                  isMultiline: true,
+                  hint: 'Enter task description',
                 ),
                 const SizedBox(height: 16),
-                InkWell(
-                  onTap: () => _selectDate(context),
-                  child: InputDecorator(
-                    decoration: const InputDecoration(
-                      labelText: 'Due Date (optional)',
-                      border: OutlineInputBorder(),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          _dueDate == null
-                              ? 'No date selected'
-                              : dateFormat.format(_dueDate!),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.calendar_today),
-                          onPressed: () => _selectDate(context),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                // Category Dropdown
+                _buildPrioritySelector(),
                 const SizedBox(height: 16),
-                InputDecorator(
-                  decoration: const InputDecoration(
-                    labelText: 'Category',
-                    border: OutlineInputBorder(),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<TaskCategory>(
-                      value: _selectedCategory,
-                      isExpanded: true,
-                      onChanged: (TaskCategory? newValue) {
-                        if (newValue != null) {
-                          setState(() {
-                            _selectedCategory = newValue;
-                          });
-                        }
-                      },
-                      items: TaskCategory.values.map((TaskCategory category) {
-                        return DropdownMenuItem<TaskCategory>(
-                          value: category,
-                          child: Row(
-                            children: [
-                              LineIcon(
-                                category.icon,
-                                size: 20,
-                                color: category.defaultColor,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(category.label),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ),
-
-                // Priority Dropdown
-                const SizedBox(height: 16),
-                InputDecorator(
-                  decoration: const InputDecoration(
-                    labelText: 'Priority',
-                    border: OutlineInputBorder(),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<TaskPriority>(
-                      value: _selectedPriority,
-                      isExpanded: true,
-                      onChanged: (TaskPriority? newValue) {
-                        if (newValue != null) {
-                          setState(() {
-                            _selectedPriority = newValue;
-                          });
-                        }
-                      },
-                      items: TaskPriority.values.map((TaskPriority priority) {
-                        return DropdownMenuItem<TaskPriority>(
-                          value: priority,
-                          child: Row(
-                            children: [
-                              Icon(
-                                priority.icon,
-                                size: 20,
-                                color: priority.color,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(priority.label),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ),
-
-                // Color Picker
-                const SizedBox(height: 16),
-                InkWell(
-                  onTap: () => _selectColor(context),
-                  child: InputDecorator(
-                    decoration: const InputDecoration(
-                      labelText: 'Custom Color (optional)',
-                      border: OutlineInputBorder(),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          _selectedColor == null
-                              ? 'Default color'
-                              : 'Custom color',
-                        ),
-                        Container(
-                          width: 24,
-                          height: 24,
-                          decoration: BoxDecoration(
-                            color: _selectedColor ??
-                                _selectedCategory.defaultColor,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.grey),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                if (isEditing) ...[
-                  const SizedBox(height: 16),
-                  SwitchListTile(
-                    title: const Text('Completed'),
-                    value: _isCompleted,
-                    onChanged: (value) {
-                      setState(() {
-                        _isCompleted = value;
-                      });
-                    },
-                  ),
-                ],
-
-                const SizedBox(height: 24),
-
-                ElevatedButton(
-                  onPressed: _isSubmitting ? null : _submitForm,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: _isSubmitting
-                      ? const CircularProgressIndicator()
-                      : Text(isEditing ? 'Save Changes' : 'Add Task'),
-                ),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildPrioritySelector() {
+    return PrioritySelector(
+      selectedPriority: _selectedPriority,
+      onPriorityChanged: (priority) {
+        setState(() {
+          _selectedPriority = priority;
+        });
+      },
+    );
+  }
+
+  Widget _buildCategorySelector() {
+    return CategorySelector(
+      selectedCategoryId: _selectedCategoryId,
+      onCategorySelected: (categoryId) {
+        setState(() {
+          _selectedCategoryId = categoryId;
+        });
+      },
+      onColorSelected: (color) {
+        setState(() {
+          _selectedColor = color;
+        });
+      },
     );
   }
 }

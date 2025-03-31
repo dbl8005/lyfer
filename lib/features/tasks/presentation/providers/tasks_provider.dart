@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lyfer/features/tasks/data/repositories/task_repository.dart';
 import 'package:lyfer/features/tasks/domain/models/task_model.dart';
@@ -35,28 +36,51 @@ class TasksNotifier extends StateNotifier<AsyncValue<List<Task>>> {
   }
 
   Future<void> _init() async {
-    _ref.listen(tasksStreamProvider, (previous, next) {
-      next.whenData((tasks) {
-        state = AsyncValue.data(tasks);
-      });
-    });
-  }
-
-  Future<void> addTask(Task task) async {
     try {
-      await _repository.addTask(task);
-      // The stream will update state automatically
+      // Initial loading of tasks
+      final tasks = await _repository.getTasks();
+      state = AsyncValue.data(tasks);
+
+      // Set up listener for real-time updates
+      _ref.listen(tasksStreamProvider, (previous, next) {
+        next.whenData((tasks) {
+          state = AsyncValue.data(tasks);
+        });
+      });
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
     }
   }
 
-  Future<void> updateTask(Task task) async {
+  Future<void> addTask(Task task) async {
     try {
-      await _repository.updateTask(task);
-      // The stream will update state automatically
+      await _repository.addTask(task);
+      // Update local state optimistically
+      state.whenData((tasks) {
+        state = AsyncValue.data([task, ...tasks]);
+      });
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
+      rethrow; // Rethrow to allow UI to handle the error
+    }
+  }
+
+  Future<void> updateTask(Task task) async {
+    if (task.id == null) {
+      throw Exception('Cannot update task without ID');
+    }
+
+    try {
+      await _repository.updateTask(task);
+      // Update local state optimistically
+      state.whenData((tasks) {
+        final updatedTasks =
+            tasks.map((t) => t.id == task.id ? task : t).toList();
+        state = AsyncValue.data(updatedTasks);
+      });
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+      rethrow;
     }
   }
 
@@ -74,6 +98,15 @@ class TasksNotifier extends StateNotifier<AsyncValue<List<Task>>> {
       // The stream will update state automatically
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
+    }
+  }
+
+  Future<Task> getTaskById(String taskId) async {
+    try {
+      return await _repository.getTaskById(taskId);
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+      throw e; // Re-throw to ensure the error propagates
     }
   }
 }

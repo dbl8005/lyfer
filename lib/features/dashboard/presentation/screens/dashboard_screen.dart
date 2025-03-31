@@ -7,7 +7,7 @@ import 'package:line_icons/line_icons.dart';
 import 'package:lyfer/core/config/constants/app_constants.dart';
 import 'package:lyfer/core/router/router.dart';
 import 'package:lyfer/core/utils/snackbars/snackbar.dart';
-import 'package:lyfer/core/widgets/custom_card.dart';
+import 'package:lyfer/core/shared/widgets/custom_card.dart';
 import 'package:lyfer/features/auth/presentation/providers/auth_provider.dart';
 import 'package:lyfer/features/habits/domain/models/habit_model.dart';
 import 'package:lyfer/features/habits/presentation/providers/habits_provider.dart';

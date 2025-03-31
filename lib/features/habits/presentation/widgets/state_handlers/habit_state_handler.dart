@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lyfer/core/config/constants/ui_constants.dart';
-import 'package:lyfer/core/widgets/error_display.dart';
+import 'package:lyfer/core/shared/widgets/error_display.dart';
 import 'package:lyfer/features/habits/domain/models/habit_model.dart';
 import 'package:lyfer/features/habits/presentation/widgets/empty_states/empty_habits_view.dart';
 

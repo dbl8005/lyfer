@@ -1,6 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:lyfer/core/shared/models/category_model.dart';
+import 'package:lyfer/features/habits/domain/enums/habit_enums.dart';
 import 'package:uuid/uuid.dart';
-import 'package:lyfer/features/tasks/domain/enums/task_enums.dart';
 
 class Task {
   final String? id;
@@ -8,8 +10,8 @@ class Task {
   final String description;
   final DateTime? dueDate;
   final bool isCompleted;
-  final TaskCategory category;
-  final TaskPriority priority;
+  final String categoryId; // Keeping consistent with HabitModel
+  final Priority priority; // Using the shared Priority enum
   final Color? color;
   final DateTime createdAt;
 
@@ -19,8 +21,8 @@ class Task {
     this.description = '',
     this.dueDate,
     this.isCompleted = false,
-    this.category = TaskCategory.other,
-    this.priority = TaskPriority.none,
+    this.categoryId = 'other',
+    this.priority = Priority.none,
     this.color,
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
@@ -31,8 +33,8 @@ class Task {
     String? description,
     DateTime? dueDate,
     bool? isCompleted,
-    TaskCategory? category,
-    TaskPriority? priority,
+    String? categoryId, // Fixed parameter type
+    Priority? priority, // Fixed parameter type
     Color? color,
     DateTime? createdAt,
   }) {
@@ -42,8 +44,8 @@ class Task {
       description: description ?? this.description,
       dueDate: dueDate ?? this.dueDate,
       isCompleted: isCompleted ?? this.isCompleted,
-      category: category ?? this.category,
-      priority: priority ?? this.priority,
+      categoryId: categoryId ?? this.categoryId, // Fixed field name
+      priority: priority ?? this.priority, // Fixed field name
       color: color ?? this.color,
       createdAt: createdAt ?? this.createdAt,
     );
@@ -51,42 +53,58 @@ class Task {
 
   Map<String, dynamic> toJson() {
     return {
-      // id is managed by Firestore
+      'id': id,
       'title': title,
       'description': description,
-      'dueDate': dueDate?.millisecondsSinceEpoch,
+      'dueDate': dueDate != null ? Timestamp.fromDate(dueDate!) : null,
       'isCompleted': isCompleted,
-      'category': category.toString(),
-      'priority': priority.toString(),
+      'categoryId': categoryId,
+      'priority': priority.index,
       'color': color?.value,
-      'createdAt': createdAt.millisecondsSinceEpoch,
+      'createdAt': Timestamp.fromDate(createdAt),
     };
   }
 
-  factory Task.fromJson(Map<String, dynamic> json, {String? id}) {
+  factory Task.fromJson(Map<String, dynamic> json, {String? docId}) {
+    // Use document ID if provided, otherwise use ID from json
+    final id = docId ?? json['id'];
+
     return Task(
-      id: id, // Use the provided id (from Firestore document ID)
+      id: id,
       title: json['title'] ?? '',
       description: json['description'] ?? '',
       dueDate: json['dueDate'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(json['dueDate'])
+          ? (json['dueDate'] as Timestamp).toDate()
           : null,
       isCompleted: json['isCompleted'] ?? false,
-      category: TaskCategory.values.firstWhere(
-          (e) => e.toString() == json['category'],
-          orElse: () => TaskCategory.other),
-      priority: TaskPriority.values.firstWhere(
-          (e) => e.toString() == json['priority'],
-          orElse: () => TaskPriority.none),
+      categoryId: json['categoryId'] ?? 'other',
+      priority: json['priority'] != null
+          ? Priority.values[json['priority'] as int]
+          : Priority.none,
       color: json['color'] != null ? Color(json['color']) : null,
       createdAt: json['createdAt'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(json['createdAt'])
+          ? (json['createdAt'] as Timestamp).toDate()
           : DateTime.now(),
     );
   }
 
-  // Create from Firestore document snapshot
-  factory Task.fromFirestore(Map<String, dynamic> data, String documentId) {
-    return Task.fromJson(data, id: documentId);
+  // Add helper getter for category (consistent with HabitModel)
+  CategoryModel get category {
+    try {
+      return findCategoryById(categoryId) ??
+          appCategories.firstWhere((c) => c.id == 'other');
+    } catch (e) {
+      // Fallback to ensure we always return a valid category
+      return findCategoryById('other')!;
+    }
+  }
+
+  // Add a fallback icon getter in case category fails (like in HabitModel)
+  IconData get iconData {
+    try {
+      return category.icon;
+    } catch (e) {
+      return Icons.assignment; // Task-specific fallback icon
+    }
   }
 }
