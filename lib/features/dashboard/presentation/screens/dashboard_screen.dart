@@ -24,7 +24,7 @@ class DashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authStateChangesProvider).asData?.value;
     final habitsAsync = ref.watch(habitsStreamProvider);
-    final tasksAsync = ref.watch(tasksStreamProvider);
+    final tasksAsync = ref.watch(tasksProvider);
     final quoteAsync = ref.watch(quoteProvider);
 
     return SingleChildScrollView(
@@ -52,8 +52,7 @@ class DashboardScreen extends ConsumerWidget {
                 // Filter habits that should be done today
                 final todayHabits = habits
                     .where((habit) =>
-                        !habit.isArchived &&
-                        habit.isScheduledForDay(DateTime.now()))
+                        !habit.isArchived && habit.isScheduledForToday())
                     .toList();
 
                 if (todayHabits.isEmpty) {
@@ -176,7 +175,7 @@ class DashboardScreen extends ConsumerWidget {
             title: 'Habits Today',
             value: habitsAsync.maybeWhen(
               data: (habits) => habits
-                  .where((h) => h.isScheduledForDay(DateTime.now()))
+                  .where((h) => h.isScheduledForToday() && !h.isArchived)
                   .length
                   .toString(),
               orElse: () => '-',
@@ -279,7 +278,7 @@ class DashboardScreen extends ConsumerWidget {
   ) {
     return Column(
       children: habits.map((habit) {
-        final isCompleted = habit.isCompletedForDay(DateTime.now());
+        final isCompleted = habit.isCompletedToday();
 
         return CustomCard(
           margin: const EdgeInsets.only(bottom: 8),

@@ -5,7 +5,7 @@ import 'package:lyfer/features/habits/domain/models/habit_model.dart';
 
 /// Displays statistics for a habit including streak, completion rate,
 /// and progress for the current period
-class HabitStatistics extends StatelessWidget {
+class HabitStatistics extends StatefulWidget {
   const HabitStatistics({
     super.key,
     required this.habit,
@@ -15,11 +15,14 @@ class HabitStatistics extends StatelessWidget {
   final HabitModel habit;
 
   @override
+  State<HabitStatistics> createState() => _HabitStatisticsState();
+}
+
+class _HabitStatisticsState extends State<HabitStatistics> {
+  @override
   Widget build(BuildContext context) {
-    final currentStreak = StreakCalculator.calculateStreak(
-        habit.completedDates.toList(), habit.frequency, habit.timesPerPeriod);
-    final completionsThisPeriod = habit.getCompletionsInCurrentPeriod();
-    final progress = completionsThisPeriod / habit.timesPerPeriod;
+    final streak = widget.habit.streakCount;
+    final bestStreak = widget.habit.bestStreak;
 
     return Card(
       elevation: 2,
@@ -39,33 +42,20 @@ class HabitStatistics extends StatelessWidget {
                 _StatCard(
                   context: context,
                   title: 'Current Streak',
-                  value: '$currentStreak',
+                  value: '$streak',
                   icon: LineIcons.fire,
                   color: Colors.orange,
                 ),
                 _StatCard(
                   context: context,
-                  title: 'Completion',
-                  value: '${(progress * 100).toInt()}%',
-                  icon: LineIcons.checkCircle,
-                  color: Colors.green,
-                ),
-                _StatCard(
-                  context: context,
-                  title: 'This ${habit.periodLabel}',
-                  value: '$completionsThisPeriod/${habit.timesPerPeriod}',
-                  icon: LineIcons.calendarCheck,
-                  color: Theme.of(context).colorScheme.primary,
+                  title: 'Best Streak',
+                  value: '$bestStreak',
+                  icon: LineIcons.trophy,
+                  color: Colors.yellow,
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            LinearProgressIndicator(
-              value: progress,
-              backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
-              minHeight: 8,
-              borderRadius: BorderRadius.circular(4),
-            ),
           ],
         ),
       ),
@@ -74,7 +64,7 @@ class HabitStatistics extends StatelessWidget {
 }
 
 /// A card that displays a statistic with an icon, value, and title
-class _StatCard extends StatelessWidget {
+class _StatCard extends StatefulWidget {
   const _StatCard({
     required this.context,
     required this.title,
@@ -90,20 +80,25 @@ class _StatCard extends StatelessWidget {
   final Color color;
 
   @override
+  State<_StatCard> createState() => _StatCardState();
+}
+
+class _StatCardState extends State<_StatCard> {
+  @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Icon(icon, color: color, size: 30),
+        Icon(widget.icon, color: widget.color, size: 30),
         const SizedBox(height: 8),
         Text(
-          value,
+          widget.value,
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: color,
+                color: widget.color,
               ),
         ),
         Text(
-          title,
+          widget.title,
           style: Theme.of(context).textTheme.bodySmall,
         ),
       ],

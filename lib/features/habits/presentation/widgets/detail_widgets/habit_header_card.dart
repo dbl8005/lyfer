@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:line_icons/line_icons.dart';
 import 'package:lyfer/features/habits/domain/enums/habit_enums.dart';
 import 'package:lyfer/features/habits/domain/models/habit_model.dart';
+import 'package:lyfer/features/habits/presentation/widgets/display/active_days_indicator.dart';
 import 'package:lyfer/features/habits/presentation/widgets/shared/info_row.dart';
 
 /// A card that displays the header information about a habit
@@ -42,16 +43,13 @@ class HabitHeaderCard extends StatelessWidget {
             InfoRow(
               icon: LineIcons.clock,
               label: 'Preferred Time',
-              value: habit.preferredTime.label,
+              value: habit.daySection.label,
             ),
             if (habit.selectedDays.isNotEmpty &&
                 habit.selectedDays.length < 7) ...[
               const SizedBox(height: 8),
-              InfoRow(
-                icon: LineIcons.calendarCheck,
-                label: 'Selected Days',
-                value: _getWeekdaysText(habit.selectedDays),
-              ),
+              ActiveDaysIndicator(
+                  selectedDays: habit.selectedDays, frequency: habit.frequency),
             ],
           ],
         ),
@@ -138,7 +136,7 @@ class HabitHeaderCard extends StatelessWidget {
     if (habit.frequency == Frequency.daily) {
       return formattedName;
     }
-    return '$formattedName (${habit.timesPerPeriod} times per ${habit.periodLabel})';
+    return '$formattedName (${habit.timesPerPeriod} times per ${habit.frequency.label})';
   }
 
   /// Formats an enum name to be more readable

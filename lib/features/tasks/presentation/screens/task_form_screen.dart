@@ -53,7 +53,7 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
   }
 
   Future<void> _loadTask() async {
-    final tasksAsync = await ref.read(tasksStreamProvider.future);
+    final tasksAsync = await ref.read(tasksProvider.future);
     final task = tasksAsync.firstWhere(
       (t) => t.id == widget.taskId,
       orElse: () => Task(title: ''),

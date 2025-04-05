@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lyfer/core/utils/helpers/streak_calculator.dart';
 import 'package:lyfer/features/auth/presentation/providers/auth_provider.dart';
 import 'package:lyfer/features/habits/domain/enums/habit_enums.dart';
 import 'package:lyfer/features/habits/domain/models/habit_model.dart';
@@ -97,6 +98,26 @@ class HabitsNotifier extends StateNotifier<AsyncValue<List<HabitModel>>> {
       rethrow;
     }
   }
+
+  // Update a habit's streak
+  Future<int> updateStreak(String habitId, int newStreak) async {
+    try {
+      return await _repository.updateHabitStreak(habitId, newStreak);
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+      rethrow;
+    }
+  }
+
+  int getStreakForHabit(HabitModel habit) {
+    final newStreak = StreakCalculator.calculateStreak(
+      habit.completedDates.toList(),
+      habit.frequency,
+      habit.timesPerPeriod,
+    );
+    updateStreak(habit.id!, newStreak);
+    return newStreak;
+  }
 }
 
 // Date selection provider
@@ -135,20 +156,18 @@ Map<DaySection, List<HabitModel>> _groupHabitsBySection(
     List<HabitModel> habits) {
   return {
     DaySection.morning: habits
-        .where((habit) => habit.preferredTime == DaySection.morning)
+        .where((habit) => habit.daySection == DaySection.morning)
         .toList(),
     DaySection.afternoon: habits
-        .where((habit) => habit.preferredTime == DaySection.afternoon)
+        .where((habit) => habit.daySection == DaySection.afternoon)
         .toList(),
     DaySection.evening: habits
-        .where((habit) => habit.preferredTime == DaySection.evening)
+        .where((habit) => habit.daySection == DaySection.evening)
         .toList(),
-    DaySection.night: habits
-        .where((habit) => habit.preferredTime == DaySection.night)
-        .toList(),
-    DaySection.allDay: habits
-        .where((habit) => habit.preferredTime == DaySection.allDay)
-        .toList(),
+    DaySection.night:
+        habits.where((habit) => habit.daySection == DaySection.night).toList(),
+    DaySection.allDay:
+        habits.where((habit) => habit.daySection == DaySection.allDay).toList(),
   };
 }
 

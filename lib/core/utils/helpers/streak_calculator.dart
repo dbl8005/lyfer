@@ -16,6 +16,10 @@ class StreakCalculator {
         return _calculateWeeklyStreak(sortedDates, timesPerPeriod);
       case Frequency.monthly:
         return _calculateMonthlyStreak(sortedDates, timesPerPeriod);
+      case Frequency.yearly:
+        return _calculateYearlyStreak(sortedDates, timesPerPeriod);
+      case Frequency.custom:
+        return _calculateCustomStreak(sortedDates, timesPerPeriod);
     }
   }
 
@@ -273,6 +277,132 @@ class StreakCalculator {
     }
 
     return streak;
+  }
+
+  // Calculate streak for yearly habits
+  static int _calculateYearlyStreak(
+      List<DateTime> sortedDates, int timesPerPeriod) {
+    final now = DateTime.now();
+
+    // Group dates by year
+    Map<int, List<DateTime>> completionsByYear = {};
+
+    for (var date in sortedDates) {
+      int yearKey = date.year;
+
+      if (!completionsByYear.containsKey(yearKey)) {
+        completionsByYear[yearKey] = [];
+      }
+      completionsByYear[yearKey]!.add(date);
+    }
+
+    // Convert to list of year keys in descending order
+    List<int> yearKeys = completionsByYear.keys.toList()
+      ..sort((a, b) => b.compareTo(a));
+
+    // Current year info
+    int currentYear = now.year;
+    bool isCurrentYearComplete =
+        (completionsByYear[currentYear]?.length ?? 0) >= timesPerPeriod;
+    bool hasCurrentYearCompletions =
+        completionsByYear.containsKey(currentYear) &&
+            completionsByYear[currentYear]!.isNotEmpty;
+
+    // Last year info
+    int lastYear = currentYear - 1;
+    bool isLastYearComplete =
+        (completionsByYear[lastYear]?.length ?? 0) >= timesPerPeriod;
+
+    // If current year has no completions and last year is not complete, streak is 0
+    if (!hasCurrentYearCompletions && !isLastYearComplete) {
+      return 0;
+    }
+
+    // Count consecutive years with enough completions
+    int streak = 0;
+    int? expectedYearKey;
+
+    // Start with the most recent completed year
+    int startingYearIndex = 0;
+
+    // If current year has completions but isn't complete yet,
+    // we still count it in the streak (as 1)
+    if (hasCurrentYearCompletions) {
+      streak = 1;
+
+      // The next expected year is last year
+      expectedYearKey = lastYear;
+
+      // Skip current year in our iteration
+      if (yearKeys.isNotEmpty && yearKeys[0] == currentYear) {
+        startingYearIndex = 1;
+      }
+    }
+
+    // Now check previous years
+    for (int i = startingYearIndex; i < yearKeys.length; i++) {
+      int yearKey = yearKeys[i];
+
+      // First iteration when we don't have a streak yet
+      if (streak == 0) {
+        if (completionsByYear[yearKey]!.length >= timesPerPeriod) {
+          streak = 1;
+          expectedYearKey = yearKey - 1; // Previous year
+        }
+        continue;
+      }
+
+      // Check if this is the expected previous year
+      if (yearKey == expectedYearKey &&
+          completionsByYear[yearKey]!.length >= timesPerPeriod) {
+        streak++;
+        expectedYearKey = yearKey - 1;
+      } else {
+        // Break in streak
+        break;
+      }
+    }
+
+    return streak;
+  }
+
+  // Calculate streak for custom frequency habits
+  static int _calculateCustomStreak(
+      List<DateTime> sortedDates, int timesPerPeriod) {
+    // For custom frequency, we'll check for recent activity
+    final now = DateTime.now();
+    final cutoffDate = now.subtract(const Duration(days: 30)); // 30-day window
+
+    // Check if there's at least one completion in the last 30 days
+    bool hasRecentActivity =
+        sortedDates.any((date) => date.isAfter(cutoffDate));
+
+    if (!hasRecentActivity) return 0;
+
+    // Count sequences of completions within the required frequency
+    int consecutiveCompletions = 0;
+    DateTime? lastDate;
+
+    for (var date in sortedDates) {
+      if (lastDate == null) {
+        consecutiveCompletions = 1;
+        lastDate = date;
+        continue;
+      }
+
+      // For custom frequency, we consider the streak maintained
+      // if completions happen within a reasonable timeframe
+      final daysBetween = lastDate.difference(date).inDays.abs();
+      if (daysBetween <= 30) {
+        // Arbitrary window for custom frequency
+        consecutiveCompletions++;
+      } else {
+        break; // Break in streak
+      }
+      lastDate = date;
+    }
+
+    return consecutiveCompletions;
   }
 
   // Helper method to get ISO week number

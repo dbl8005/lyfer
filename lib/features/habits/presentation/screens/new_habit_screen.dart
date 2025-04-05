@@ -31,7 +31,7 @@ class _NewHabitScreenState extends ConsumerState<NewHabitScreen> {
   Frequency _selectedFrequency = Frequency.daily;
   int _timesPerPeriod = 1; // Default to 1 time per period
   int? _targetDays;
-  Set<int> _selectedDays = {0, 1, 2, 3, 4, 5, 6};
+  Set<WeekDay> _selectedDays = {};
   Priority _selectedPriority = Priority.none;
 
   Reminder _selectedReminderType = Reminder.none;
@@ -57,18 +57,35 @@ class _NewHabitScreenState extends ConsumerState<NewHabitScreen> {
     try {
       final habit = HabitModel(
         name: _nameController.text,
-        categoryId: _selectedCategoryId, // Replace icon with this
+        categoryId: _selectedCategoryId,
+        createdAt: DateTime.now(),
         color: _selectedColor,
-        preferredTime: _selectedTimeOfDay,
+        daySection: _selectedTimeOfDay,
         description: _descriptionController.text,
-        targetDays: _targetDays,
         frequency: _selectedFrequency,
         timesPerPeriod: _timesPerPeriod,
-        selectedDays: _selectedDays,
-        priority: _selectedPriority,
+        targetDays: _targetDays,
+        completedDates: {},
+        isArchived: false,
         reminderType: _selectedReminderType,
-        reminderTime: _selectedReminderTime,
-        specificReminderTime: _specificReminderTime,
+        reminderTime: _selectedReminderTime == null
+            ? null
+            : TimeOfDay.fromDateTime(DateTime.now()),
+        tags: [],
+        priority: _selectedPriority,
+        notes: [],
+        selectedDays: _selectedDays.isEmpty
+            ? {
+                WeekDay.monday,
+                WeekDay.tuesday,
+                WeekDay.wednesday,
+                WeekDay.thursday,
+                WeekDay.friday,
+                WeekDay.saturday,
+                WeekDay.sunday,
+              }
+            : _selectedDays,
+        isPinned: false,
       );
 
       await ref.read(habitsProvider.notifier).createHabit(habit);
@@ -266,12 +283,15 @@ class _NewHabitScreenState extends ConsumerState<NewHabitScreen> {
   }
 
   Widget _buildDaySelector() {
+    // Convert Set<WeekDay> to Set<int> using the index values
+    final selectedDaysAsInts = _selectedDays.map((day) => day.index).toSet();
+
     return DaySelector(
-      selectedDays: _selectedDays ??
-          (_selectedFrequency == Frequency.daily ? {0, 1, 2, 3, 4, 5, 6} : {}),
-      onDaysSelected: (days) {
+      selectedDays: selectedDaysAsInts,
+      onDaysSelected: (selectedDays) {
         setState(() {
-          _selectedDays = days;
+          _selectedDays =
+              selectedDays.map((day) => WeekDay.values[day]).toSet();
         });
       },
       dailyHabit: _selectedFrequency == Frequency.daily,

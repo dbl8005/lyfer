@@ -17,7 +17,7 @@ class CustomCard extends StatelessWidget {
     Key? key,
     required this.child,
     this.onTap,
-    this.padding = const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+    this.padding = const EdgeInsets.symmetric(horizontal: 4.0, vertical: 0.0),
     this.margin = const EdgeInsets.symmetric(vertical: 8.0),
     this.elevation = 5.0,
     this.borderRadius = 12.0,

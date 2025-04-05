@@ -6,8 +6,8 @@ import 'package:lyfer/features/habits/domain/enums/habit_enums.dart';
 /// Shows a row of day indicators (M, T, W, T, F, S, S) with the selected days
 /// highlighted, making it easy to see the habit's weekly schedule at a glance.
 class ActiveDaysIndicator extends StatelessWidget {
-  /// List of day indices that are selected (0 = Monday, 6 = Sunday)
-  final List<int> selectedDays;
+  /// The days of week that are selected, using the WeekDay enum
+  final Set<WeekDay> selectedDays;
 
   /// Frequency of the habit, used to determine when to hide the indicator
   final Frequency frequency;
@@ -59,7 +59,10 @@ class ActiveDaysIndicator extends StatelessWidget {
           ),
           const SizedBox(width: 4),
           ...List.generate(7, (index) {
-            final isSelected = selectedDays.contains(index);
+            // Use the WeekDay enum to check if the day is selected
+            final weekDay = WeekDay.values[index];
+            final isSelected = selectedDays.contains(weekDay);
+
             return Container(
               width: size,
               height: size,
