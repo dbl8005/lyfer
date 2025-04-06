@@ -73,17 +73,10 @@ class TaskRepository {
       throw Exception('User not authenticated');
     }
 
-    final taskWithId = task.id == null ? task : task; // Already has an ID
-
-    // Create a reference first
     final docRef = _tasksCollection.doc();
+    final updatedTask = task.copyWith(id: docRef.id);
 
-    // Create the task with the document ID
-    final updatedTask = taskWithId.copyWith(id: docRef.id);
-
-    // Save to Firestore
     await docRef.set(updatedTask.toJson());
-
     return updatedTask;
   }
 

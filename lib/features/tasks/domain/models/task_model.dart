@@ -66,7 +66,6 @@ class Task {
   }
 
   factory Task.fromJson(Map<String, dynamic> json, {String? docId}) {
-    // Use document ID if provided, otherwise use ID from json
     final id = docId ?? json['id'];
 
     return Task(

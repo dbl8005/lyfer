@@ -23,12 +23,12 @@ final habitsStreamProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef HabitsStreamRef = AutoDisposeStreamProviderRef<List<HabitModel>>;
-String _$habitsRepositoryHash() => r'2b69d680a460fa34b332e59b0c2d3d6f9838f90f';
+String _$habitsRepositoryHash() => r'bfafacd2153899ff032ff055a9473c3ea51031ca';
 
 /// See also [HabitsRepository].
 @ProviderFor(HabitsRepository)
-final habitsRepositoryProvider =
-    AutoDisposeNotifierProvider<HabitsRepository, HabitRepository>.internal(
+final habitsRepositoryProvider = AutoDisposeAsyncNotifierProvider<
+    HabitsRepository, List<HabitModel>>.internal(
   HabitsRepository.new,
   name: r'habitsRepositoryProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -38,7 +38,7 @@ final habitsRepositoryProvider =
   allTransitiveDependencies: null,
 );
 
-typedef _$HabitsRepository = AutoDisposeNotifier<HabitRepository>;
+typedef _$HabitsRepository = AutoDisposeAsyncNotifier<List<HabitModel>>;
 String _$selectedDateHash() => r'8b2edf535e845e65028edfc4481edc051efec67a';
 
 /// See also [SelectedDate].

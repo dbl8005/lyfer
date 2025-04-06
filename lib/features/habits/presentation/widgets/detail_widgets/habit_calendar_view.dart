@@ -129,11 +129,12 @@ class _HabitCalendarViewState extends ConsumerState<HabitCalendarView> {
 
       try {
         // Toggle completion status through the service
-        final updatedHabit =
-            await ref.read(habitsRepositoryProvider).toggleHabitCompletion(
-                  habitId,
-                  day,
-                );
+        final updatedHabit = await ref
+            .read(habitsRepositoryProvider.notifier)
+            .toggleHabitCompletion(
+              habitId,
+              day,
+            );
 
         // Show feedback to user
         final dayDateFormat = DateFormat('dd/MM/yyyy').format(day);

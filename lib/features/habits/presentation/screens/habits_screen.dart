@@ -57,7 +57,8 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final habitStream = ref.watch(habitsRepositoryProvider).watchHabits();
+    final habitStream =
+        ref.watch(habitsRepositoryProvider.notifier).habitsStream();
 
     return Semantics(
       label: UIConstants.habitsScreenLabel,

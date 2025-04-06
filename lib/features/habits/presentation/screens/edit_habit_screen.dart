@@ -112,7 +112,9 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
         reminderTime: _reminderTime, // Simplified to match HabitModel
       );
 
-      await ref.read(habitsRepositoryProvider).updateHabit(updatedHabit);
+      await ref
+          .read(habitsRepositoryProvider.notifier)
+          .updateHabit(updatedHabit);
 
       if (mounted) {
         Navigator.of(context).pop();
@@ -161,7 +163,9 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
     setState(() => _isLoading = true);
 
     try {
-      await ref.read(habitsRepositoryProvider).deleteHabit(widget.habit.id!);
+      await ref
+          .read(habitsRepositoryProvider.notifier)
+          .deleteHabit(widget.habit.id!);
       if (mounted) {
         Navigator.of(context).pop();
         AppSnackbar.show(

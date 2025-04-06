@@ -96,7 +96,7 @@ class _NewHabitScreenState extends ConsumerState<NewHabitScreen> {
         isPinned: false,
       );
 
-      await ref.read(habitsRepositoryProvider).createHabit(habit);
+      await ref.read(habitsRepositoryProvider.notifier).createHabit(habit);
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
       if (mounted) {

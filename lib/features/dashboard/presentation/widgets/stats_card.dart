@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lyfer/core/shared/widgets/custom_card.dart';
 
 class StatsCard extends StatelessWidget {
   final String title;
@@ -18,8 +19,7 @@ class StatsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
+    return CustomCard(
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),

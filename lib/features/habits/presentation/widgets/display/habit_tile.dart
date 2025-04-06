@@ -168,7 +168,7 @@ class HabitTile extends ConsumerWidget {
           title: 'Delete Habit',
           content: 'Are you sure you want to delete this habit?',
           onConfirm: () {
-            ref.read(habitsRepositoryProvider).deleteHabit(habit.id!);
+            ref.read(habitsRepositoryProvider.notifier).deleteHabit(habit.id!);
             Navigator.of(context).pop();
           },
         );
@@ -194,7 +194,7 @@ class HabitTile extends ConsumerWidget {
   // Toggle habit completion
   void _toggleHabitCompletion(WidgetRef ref) {
     ref
-        .read(habitsRepositoryProvider)
+        .read(habitsRepositoryProvider.notifier)
         .toggleHabitCompletion(habit.id!, selectedDate);
   }
 

@@ -105,7 +105,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final habitId = state.pathParameters['id']!;
           // You'll need to fetch the habit first
-          final habitService = ref.read(habitsRepositoryProvider);
+          final habitService = ref.read(habitsRepositoryProvider.notifier);
           return FutureBuilder<HabitModel>(
             future: habitService.getHabitById(habitId),
             builder: (context, snapshot) {
@@ -127,7 +127,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final habitId = state.pathParameters['id']!;
           // You'll need to fetch the habit first
-          final habitService = ref.read(habitsRepositoryProvider);
+          final habitService = ref.read(habitsRepositoryProvider.notifier);
           return FutureBuilder<HabitModel>(
             future: habitService.getHabitById(habitId),
             builder: (context, snapshot) {

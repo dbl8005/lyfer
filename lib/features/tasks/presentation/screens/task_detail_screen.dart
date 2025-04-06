@@ -176,7 +176,8 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
               ),
               const SizedBox(width: 12),
               Text(
-                DateFormat('EEEE, MMMM d, y').format(widget.task.dueDate!),
+                DateFormat('EEEE, MMMM d, y hh:mm a')
+                    .format(widget.task.dueDate!),
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,

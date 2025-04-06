@@ -9,56 +9,100 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'habits_provider.g.dart';
 
-//Repository provider
+//Habits provider
 @riverpod
 class HabitsRepository extends _$HabitsRepository {
   @override
-  HabitRepository build() {
+  Future<List<HabitModel>> build() async {
     final authState = ref.watch(authStateChangesProvider).asData?.value;
-    return HabitRepository(userId: authState?.uid);
+    if (authState == null) {
+      return []; // Return an empty list if the user is not authenticated
+    }
+    final repository = HabitRepository(userId: authState.uid);
+    return await repository.getHabits();
   }
+  // HabitRepository build() {
+  //   final authState = ref.watch(authStateChangesProvider).asData?.value;
+  //   return HabitRepository(userId: authState?.uid);
+  // }
 
   // Stream provider for reactive UI updates
   Stream<List<HabitModel>> habitsStream() {
-    final repository = HabitRepository(userId: state.userId);
+    final authState = ref.watch(authStateChangesProvider).asData?.value;
+    if (authState == null) {
+      return Stream.value(
+          []); // Return an empty stream if the user is not authenticated
+    }
+    final repository = HabitRepository(userId: authState.uid);
     return repository.watchHabits();
   }
 
   // Add a new habit
   Future<void> createHabit(HabitModel habit) async {
-    final repository = HabitRepository(userId: state.userId);
+    final authState = ref.watch(authStateChangesProvider).asData?.value;
+    if (authState == null) {
+      throw Exception('User not authenticated');
+    }
+    final repository = HabitRepository(userId: authState.uid);
     await repository.createHabit(habit);
   }
 
   // Update an existing habit
   Future<void> updateHabit(HabitModel habit) async {
-    final repository = HabitRepository(userId: state.userId);
+    final authState = ref.watch(authStateChangesProvider).asData?.value;
+    if (authState == null) {
+      throw Exception('User not authenticated');
+    }
+    final repository = HabitRepository(userId: authState.uid);
+    // Update the habit in the repository
     await repository.updateHabit(habit);
   }
 
   // Delete a habit
   Future<void> deleteHabit(String habitId) async {
-    final repository = HabitRepository(userId: state.userId);
+    final authState = ref.watch(authStateChangesProvider).asData?.value;
+    if (authState == null) {
+      throw Exception('User not authenticated');
+    }
+    // Get the user ID from the auth state
+    final repository = HabitRepository(userId: authState.uid);
+    // Delete the habit from the repository
     await repository.deleteHabit(habitId);
   }
 
   // Toggle habit completion
   Future<HabitModel> toggleHabitCompletion(
       String habitId, DateTime date) async {
-    final repository = HabitRepository(userId: state.userId);
+    final authState = ref.watch(authStateChangesProvider).asData?.value;
+    if (authState == null) {
+      throw Exception('User not authenticated');
+    }
+    // Get the user ID from the auth state
+    final repository = HabitRepository(userId: authState.uid);
     await repository.toggleHabitCompletion(habitId, date);
     return await repository.getHabitById(habitId);
   }
 
   // Get a habit by ID
   Future<HabitModel> getHabitById(String habitId) async {
-    final repository = HabitRepository(userId: state.userId);
+    final authState = ref.watch(authStateChangesProvider).asData?.value;
+    if (authState == null) {
+      throw Exception('User not authenticated');
+    }
+    // Get the user ID from the auth state
+    final repository = HabitRepository(userId: authState.uid);
     return await repository.getHabitById(habitId);
   }
 
   // Update a habit's streak
   Future<int> updateStreak(String habitId, int newStreak) async {
-    final repository = HabitRepository(userId: state.userId);
+    final authState = ref.watch(authStateChangesProvider).asData?.value;
+    if (authState == null) {
+      throw Exception('User not authenticated');
+    }
+    // Get the user ID from the auth state
+    final repository = HabitRepository(userId: authState.uid);
+    // Update the habit's streak in the repository
     return await repository.updateHabitStreak(habitId, newStreak);
   }
 

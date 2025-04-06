@@ -179,6 +179,8 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
                 const SizedBox(height: 16),
                 _buildPrioritySelector(),
                 const SizedBox(height: 16),
+                _buildDueDatePicker(),
+                const SizedBox(height: 16),
               ],
             ),
           ),
@@ -211,6 +213,104 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
           _selectedColor = color;
         });
       },
+    );
+  }
+
+  Widget _buildDueDatePicker() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Due Date & Time (optional)',
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: InkWell(
+                onTap: () async {
+                  final selectedDate = await showDatePicker(
+                    context: context,
+                    initialDate: _dueDate ?? DateTime.now(),
+                    firstDate: DateTime.now(),
+                    lastDate: DateTime(2100),
+                  );
+
+                  if (selectedDate != null) {
+                    setState(() {
+                      _dueDate = DateTime(
+                        selectedDate.year,
+                        selectedDate.month,
+                        selectedDate.day,
+                      );
+                    });
+                  }
+                },
+                child: InputDecorator(
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 12.0,
+                      horizontal: 16.0,
+                    ),
+                  ),
+                  child: Text(
+                    _dueDate != null
+                        ? DateFormat('MMM dd, yyyy').format(_dueDate!)
+                        : 'Date',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: InkWell(
+                onTap: () async {
+                  final selectedTime = await showTimePicker(
+                    context: context,
+                    initialTime:
+                        TimeOfDay.fromDateTime(_dueDate ?? DateTime.now()),
+                  );
+
+                  if (selectedTime != null) {
+                    setState(() {
+                      _dueDate = DateTime(
+                        _dueDate?.year ?? DateTime.now().year,
+                        _dueDate?.month ?? DateTime.now().month,
+                        _dueDate?.day ?? DateTime.now().day,
+                        selectedTime.hour,
+                        selectedTime.minute,
+                      );
+                    });
+                  }
+                },
+                child: InputDecorator(
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 12.0,
+                      horizontal: 16.0,
+                    ),
+                  ),
+                  child: Text(
+                    _dueDate != null &&
+                            (_dueDate!.hour != 0 || _dueDate!.minute != 0)
+                        ? DateFormat('hh:mm a').format(_dueDate!)
+                        : 'Time',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

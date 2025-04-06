@@ -100,4 +100,11 @@ class HabitRepository {
     final updatedDoc = await _habitsCollection.doc(habitId).get();
     return HabitModel.fromJson(updatedDoc.data()!, docId: habitId).streakCount;
   }
+
+  Future<List<HabitModel>> getHabits() async {
+    final snapshot = await _habitsCollection.get();
+    return snapshot.docs.map((doc) {
+      return HabitModel.fromJson(doc.data(), docId: doc.id);
+    }).toList();
+  }
 }

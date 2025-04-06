@@ -89,6 +89,8 @@ class TaskItem extends ConsumerWidget {
   }
 
   Widget _buildTaskSubtitle(BuildContext context, DateFormat dateFormat) {
+    final timeFormat = DateFormat('hh:mm a'); // Add time format
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -100,7 +102,24 @@ class TaskItem extends ConsumerWidget {
             overflow: TextOverflow.ellipsis,
           ),
         if (task.dueDate != null)
-          TaskDueDateBadge(dueDate: task.dueDate!, dateFormat: dateFormat),
+          Padding(
+            padding: const EdgeInsets.only(top: 4.0),
+            child: Row(
+              children: [
+                const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    '${dateFormat.format(task.dueDate!)} at ${timeFormat.format(task.dueDate!)}', // Include time
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.grey,
+                        ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }
@@ -173,9 +192,11 @@ class TaskItem extends ConsumerWidget {
                 ? AppTaskColors.completed
                 : AppTaskColors.pending,
           ),
-          onPressed: () {
+          onPressed: () async {
             try {
-              ref.read(tasksProvider.notifier).toggleTaskCompletion(task.id!);
+              await ref
+                  .read(tasksProvider.notifier)
+                  .toggleTaskCompletion(task.id!);
             } catch (e) {
               AppSnackbar.show(
                 context: context,
