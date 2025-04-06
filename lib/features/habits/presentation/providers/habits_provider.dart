@@ -5,110 +5,64 @@ import 'package:lyfer/features/auth/presentation/providers/auth_provider.dart';
 import 'package:lyfer/features/habits/domain/enums/habit_enums.dart';
 import 'package:lyfer/features/habits/domain/models/habit_model.dart';
 import 'package:lyfer/features/habits/data/repositories/habit_repository.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-// Repository provider
-final habitsRepositoryProvider = Provider<HabitRepository>((ref) {
-  final authState = ref.watch(authStateChangesProvider).asData?.value;
-  return HabitRepository(userId: authState?.uid);
-});
+part 'habits_provider.g.dart';
 
-// Stream provider for reactive UI updates
-final habitsStreamProvider = StreamProvider<List<HabitModel>>((ref) {
-  final repository = ref.watch(habitsRepositoryProvider);
-  return repository.watchHabits();
-});
-
-// State notifier provider for operations
-final habitsProvider =
-    StateNotifierProvider<HabitsNotifier, AsyncValue<List<HabitModel>>>((ref) {
-  final repository = ref.watch(habitsRepositoryProvider);
-  return HabitsNotifier(repository, ref);
-});
-
-// Notifier for managing habits
-class HabitsNotifier extends StateNotifier<AsyncValue<List<HabitModel>>> {
-  final HabitRepository _repository;
-  final Ref _ref;
-  HabitsNotifier(
-    this._repository,
-    this._ref,
-  ) : super(const AsyncValue.loading()) {
-    _init();
+//Repository provider
+@riverpod
+class HabitsRepository extends _$HabitsRepository {
+  @override
+  HabitRepository build() {
+    final authState = ref.watch(authStateChangesProvider).asData?.value;
+    return HabitRepository(userId: authState?.uid);
   }
 
-  // Initialize the notifier
-  Future<void> _init() async {
-    _ref.listen(
-      habitsStreamProvider,
-      (previous, next) {
-        next.whenData(
-          (value) {
-            state = AsyncValue.data(value);
-          },
-        );
-      },
-    );
+  // Stream provider for reactive UI updates
+  Stream<List<HabitModel>> habitsStream() {
+    final repository = HabitRepository(userId: state.userId);
+    return repository.watchHabits();
   }
 
   // Add a new habit
   Future<void> createHabit(HabitModel habit) async {
-    try {
-      await _repository.createHabit(habit);
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
-    }
+    final repository = HabitRepository(userId: state.userId);
+    await repository.createHabit(habit);
   }
 
   // Update an existing habit
   Future<void> updateHabit(HabitModel habit) async {
-    try {
-      await _repository.updateHabit(habit);
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
-    }
+    final repository = HabitRepository(userId: state.userId);
+    await repository.updateHabit(habit);
   }
 
   // Delete a habit
   Future<void> deleteHabit(String habitId) async {
-    try {
-      await _repository.deleteHabit(habitId);
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
-    }
+    final repository = HabitRepository(userId: state.userId);
+    await repository.deleteHabit(habitId);
   }
 
   // Toggle habit completion
   Future<HabitModel> toggleHabitCompletion(
       String habitId, DateTime date) async {
-    try {
-      await _repository.toggleHabitCompletion(habitId, date);
-      return await _repository.getHabitById(habitId);
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
-      throw e;
-    }
+    final repository = HabitRepository(userId: state.userId);
+    await repository.toggleHabitCompletion(habitId, date);
+    return await repository.getHabitById(habitId);
   }
 
   // Get a habit by ID
   Future<HabitModel> getHabitById(String habitId) async {
-    try {
-      return await _repository.getHabitById(habitId);
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
-      rethrow;
-    }
+    final repository = HabitRepository(userId: state.userId);
+    return await repository.getHabitById(habitId);
   }
 
   // Update a habit's streak
   Future<int> updateStreak(String habitId, int newStreak) async {
-    try {
-      return await _repository.updateHabitStreak(habitId, newStreak);
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
-      rethrow;
-    }
+    final repository = HabitRepository(userId: state.userId);
+    return await repository.updateHabitStreak(habitId, newStreak);
   }
 
+// Get streak for a habit
   int getStreakForHabit(HabitModel habit) {
     final newStreak = StreakCalculator.calculateStreak(
       habit.completedDates.toList(),
@@ -120,63 +74,90 @@ class HabitsNotifier extends StateNotifier<AsyncValue<List<HabitModel>>> {
   }
 }
 
-// Date selection provider
-final selectedDateProvider = StateProvider<DateTime>((ref) => DateTime.now());
-
-// Current section provider
-final currentSectionProvider = Provider<DaySection>((ref) {
-  final now = TimeOfDay.now();
-  final hour = now.hour;
-
-  if (hour >= 5 && hour < 12) {
-    return DaySection.morning;
-  } else if (hour >= 12 && hour < 17) {
-    return DaySection.afternoon;
-  } else if (hour >= 17 && hour < 21) {
-    return DaySection.evening;
-  } else {
-    return DaySection.night;
-  }
-});
-
-// Grouped habits provider
-final groupedHabitsProvider =
-    Provider<Map<DaySection, List<HabitModel>>>((ref) {
-  final habitsAsyncValue = ref.watch(habitsStreamProvider);
-
-  return habitsAsyncValue.when(
-    data: (habits) => _groupHabitsBySection(habits),
-    loading: () => _getEmptyGroupedHabits(),
-    error: (_, __) => _getEmptyGroupedHabits(),
-  );
-});
-
-// Helper function to group habits by section
-Map<DaySection, List<HabitModel>> _groupHabitsBySection(
-    List<HabitModel> habits) {
-  return {
-    DaySection.morning: habits
-        .where((habit) => habit.daySection == DaySection.morning)
-        .toList(),
-    DaySection.afternoon: habits
-        .where((habit) => habit.daySection == DaySection.afternoon)
-        .toList(),
-    DaySection.evening: habits
-        .where((habit) => habit.daySection == DaySection.evening)
-        .toList(),
-    DaySection.night:
-        habits.where((habit) => habit.daySection == DaySection.night).toList(),
-    DaySection.allDay:
-        habits.where((habit) => habit.daySection == DaySection.allDay).toList(),
-  };
+// Stream provider for habitsStream
+@riverpod
+Stream<List<HabitModel>> habitsStream(HabitsStreamRef ref) {
+  return ref.watch(habitsRepositoryProvider.notifier).habitsStream();
 }
 
-Map<DaySection, List<HabitModel>> _getEmptyGroupedHabits() {
-  return {
-    DaySection.morning: [],
-    DaySection.afternoon: [],
-    DaySection.evening: [],
-    DaySection.night: [],
-    DaySection.allDay: [],
-  };
+// Date Selection provider
+@riverpod
+class SelectedDate extends _$SelectedDate {
+  @override
+  DateTime build() {
+    return DateTime.now();
+  }
+
+  void update(DateTime date) {
+    state = date;
+  }
+}
+
+@riverpod
+class CurrentSection extends _$CurrentSection {
+  @override
+  DaySection build() {
+    final now = TimeOfDay.now();
+    final hour = now.hour;
+
+    if (hour >= 5 && hour < 12) {
+      return DaySection.morning;
+    } else if (hour >= 12 && hour < 17) {
+      return DaySection.afternoon;
+    } else if (hour >= 17 && hour < 21) {
+      return DaySection.evening;
+    } else {
+      return DaySection.night;
+    }
+  }
+}
+
+// Grouped habits provider
+@riverpod
+class GroupedHabits extends _$GroupedHabits {
+  @override
+  Map<DaySection, List<HabitModel>> build() {
+    // Watch the habitsStreamProvider, which returns an AsyncValue
+    final habitsAsyncValue = ref.watch(habitsStreamProvider);
+
+    // Use `when` to handle the different states
+    return habitsAsyncValue.when(
+      data: (habits) => _groupHabitsBySection(habits),
+      loading: () => _getEmptyGroupedHabits(),
+      error: (_, __) => _getEmptyGroupedHabits(),
+    );
+  }
+
+  // Helper function to group habits by section
+  Map<DaySection, List<HabitModel>> _groupHabitsBySection(
+      List<HabitModel> habits) {
+    return {
+      DaySection.morning: habits
+          .where((habit) => habit.daySection == DaySection.morning)
+          .toList(),
+      DaySection.afternoon: habits
+          .where((habit) => habit.daySection == DaySection.afternoon)
+          .toList(),
+      DaySection.evening: habits
+          .where((habit) => habit.daySection == DaySection.evening)
+          .toList(),
+      DaySection.night: habits
+          .where((habit) => habit.daySection == DaySection.night)
+          .toList(),
+      DaySection.allDay: habits
+          .where((habit) => habit.daySection == DaySection.allDay)
+          .toList(),
+    };
+  }
+
+  // Helper function to return an empty grouped habits map
+  Map<DaySection, List<HabitModel>> _getEmptyGroupedHabits() {
+    return {
+      DaySection.morning: [],
+      DaySection.afternoon: [],
+      DaySection.evening: [],
+      DaySection.night: [],
+      DaySection.allDay: [],
+    };
+  }
 }

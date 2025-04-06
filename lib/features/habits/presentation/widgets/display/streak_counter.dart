@@ -13,13 +13,16 @@ class StreakCounter extends StatelessWidget {
   Widget build(BuildContext context) {
     final streakColor = switch (currentStreak) {
       0 => Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
-      < 5 => Colors.red.shade300,
-      < 10 => Colors.red.shade400,
-      < 20 => Colors.red.shade500,
-      < 30 => Colors.red.shade600,
-      < 50 => Colors.red.shade700,
-      < 100 => Colors.red.shade800,
-      >= 100 => Colors.red.shade900,
+      < 5 => Colors.grey,
+      < 10 => Colors.red.shade100,
+      < 20 => Colors.red.shade200,
+      < 30 => Colors.red.shade300,
+      < 40 => Colors.red.shade400,
+      < 50 => Colors.red.shade500,
+      < 60 => Colors.red.shade600,
+      < 100 => Colors.red.shade700,
+      < 150 => Colors.red.shade800,
+      > 150 => Colors.red.shade900,
       _ => Colors.grey
     };
     return Container(

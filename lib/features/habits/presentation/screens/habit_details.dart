@@ -75,7 +75,7 @@ class _HabitDetailsState extends ConsumerState<HabitDetails> {
 
     if (confirmed == true) {
       try {
-        await ref.read(habitsProvider.notifier).deleteHabit(widget.habit.id!);
+        await ref.read(habitsRepositoryProvider).deleteHabit(widget.habit.id!);
         if (mounted) {
           AppSnackbar.show(
             context: context,

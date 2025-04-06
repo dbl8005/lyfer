@@ -31,7 +31,15 @@ class _NewHabitScreenState extends ConsumerState<NewHabitScreen> {
   Frequency _selectedFrequency = Frequency.daily;
   int _timesPerPeriod = 1; // Default to 1 time per period
   int? _targetDays;
-  Set<WeekDay> _selectedDays = {};
+  Set<WeekDay> _selectedDays = {
+    WeekDay.monday,
+    WeekDay.tuesday,
+    WeekDay.wednesday,
+    WeekDay.thursday,
+    WeekDay.friday,
+    WeekDay.saturday,
+    WeekDay.sunday,
+  };
   Priority _selectedPriority = Priority.none;
 
   Reminder _selectedReminderType = Reminder.none;
@@ -88,7 +96,7 @@ class _NewHabitScreenState extends ConsumerState<NewHabitScreen> {
         isPinned: false,
       );
 
-      await ref.read(habitsProvider.notifier).createHabit(habit);
+      await ref.read(habitsRepositoryProvider).createHabit(habit);
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
       if (mounted) {

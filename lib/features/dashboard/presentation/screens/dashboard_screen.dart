@@ -23,7 +23,7 @@ class DashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authStateChangesProvider).asData?.value;
-    final habitsAsync = ref.watch(habitsStreamProvider);
+    final habitsAsync = ref.watch(habitsStreamProvider); // Use StreamProvider
     final tasksAsync = ref.watch(tasksProvider);
     final quoteAsync = ref.watch(quoteProvider);
 
@@ -319,7 +319,9 @@ class DashboardScreen extends ConsumerWidget {
               ),
               onPressed: () async {
                 try {
-                  await ref.read(habitsProvider.notifier).toggleHabitCompletion(
+                  await ref
+                      .read(habitsRepositoryProvider)
+                      .toggleHabitCompletion(
                         habit.id!,
                         DateTime.now(),
                       );

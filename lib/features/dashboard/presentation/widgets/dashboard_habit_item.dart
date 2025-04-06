@@ -87,7 +87,7 @@ class DashboardHabitItem extends ConsumerWidget {
   Future<void> _toggleCompletion(BuildContext context, WidgetRef ref) async {
     try {
       final isCompleted = habit.isCompletedToday();
-      await ref.read(habitsProvider.notifier).toggleHabitCompletion(
+      await ref.read(habitsRepositoryProvider).toggleHabitCompletion(
             habit.id!,
             DateTime.now(),
           );

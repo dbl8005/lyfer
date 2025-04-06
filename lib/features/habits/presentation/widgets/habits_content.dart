@@ -37,21 +37,20 @@ class HabitsContent extends ConsumerWidget {
               today: today,
               onPreviousDayPressed: () => ref
                   .read(selectedDateProvider.notifier)
-                  .update((state) => state.subtract(const Duration(days: 1))),
+                  .state = selectedDate.subtract(const Duration(days: 1)),
               onNextDayPressed: () {
                 final isToday = selectedDate.year == today.year &&
                     selectedDate.month == today.month &&
                     selectedDate.day == today.day;
 
                 if (!isToday) {
-                  ref
-                      .read(selectedDateProvider.notifier)
-                      .update((state) => state.add(const Duration(days: 1)));
+                  ref.read(selectedDateProvider.notifier).state =
+                      selectedDate.add(const Duration(days: 1));
                 }
               },
               onTodayPressed: () => ref
                   .read(selectedDateProvider.notifier)
-                  .update((_) => DateTime.now()),
+                  .state = DateTime.now(),
             ),
 
             // Build sections in chronological order

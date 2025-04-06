@@ -53,7 +53,7 @@ class HabitTile extends ConsumerWidget {
   // Calculate current streak
   int _calculateCurrentStreak(WidgetRef ref) {
     final streakCalculator =
-        ref.read(habitsProvider.notifier).getStreakForHabit(habit);
+        ref.read(habitsRepositoryProvider.notifier).getStreakForHabit(habit);
     return streakCalculator;
   }
 
@@ -168,7 +168,7 @@ class HabitTile extends ConsumerWidget {
           title: 'Delete Habit',
           content: 'Are you sure you want to delete this habit?',
           onConfirm: () {
-            ref.read(habitsProvider.notifier).deleteHabit(habit.id!);
+            ref.read(habitsRepositoryProvider).deleteHabit(habit.id!);
             Navigator.of(context).pop();
           },
         );
@@ -194,7 +194,7 @@ class HabitTile extends ConsumerWidget {
   // Toggle habit completion
   void _toggleHabitCompletion(WidgetRef ref) {
     ref
-        .read(habitsProvider.notifier)
+        .read(habitsRepositoryProvider)
         .toggleHabitCompletion(habit.id!, selectedDate);
   }
 

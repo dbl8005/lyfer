@@ -57,14 +57,14 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final habitsAsyncValue = ref.watch(habitsStreamProvider);
+    final habitStream = ref.watch(habitsRepositoryProvider).watchHabits();
 
     return Semantics(
       label: UIConstants.habitsScreenLabel,
       child: HabitStateHandler(
-        habitsAsyncValue: habitsAsyncValue,
+        habitsStream: habitStream,
         onCreateHabit: _navigateToCreateHabit,
-        onRetry: () => ref.refresh(habitsStreamProvider),
+        onRetry: () => ref.refresh(habitsRepositoryProvider),
         dataBuilder: (habits) => HabitsContent(
           scrollController: _scrollController,
           sectionKeys: _sectionKeys,
