@@ -9,6 +9,7 @@ import 'package:lyfer/core/router/router.dart';
 import 'package:lyfer/core/utils/snackbars/snackbar.dart';
 import 'package:lyfer/core/shared/widgets/custom_card.dart';
 import 'package:lyfer/features/auth/presentation/providers/auth_provider.dart';
+import 'package:lyfer/features/dashboard/presentation/widgets/dashboard_task_item.dart';
 import 'package:lyfer/features/habits/domain/models/habit_model.dart';
 import 'package:lyfer/features/habits/presentation/providers/habits_provider.dart';
 import 'package:lyfer/features/tasks/domain/models/task_model.dart';
@@ -23,8 +24,8 @@ class DashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authStateChangesProvider).asData?.value;
-    final habitsAsync = ref.watch(habitsStreamProvider); // Use StreamProvider
-    final tasksAsync = ref.watch(tasksProvider);
+    final habitsAsync = ref.watch(habitsStreamProvider);
+    final tasksAsync = ref.watch(tasksProvider.notifier).watchTasks();
     final quoteAsync = ref.watch(quoteProvider);
 
     return SingleChildScrollView(
@@ -78,21 +79,21 @@ class DashboardScreen extends ConsumerWidget {
               'Upcoming Tasks',
               icon: LineIcons.calendar,
             ),
-            tasksAsync.when(
-              data: (tasks) {
-                // Filter and sort upcoming tasks
-                final upcomingTasks = tasks
-                    .where((task) =>
-                        !task.isCompleted &&
-                        task.dueDate != null &&
-                        task.dueDate!.isAfter(DateTime.now()))
-                    .toList()
-                  ..sort((a, b) => a.dueDate!.compareTo(b.dueDate!));
 
-                // Take only the first 5 tasks
-                final displayTasks = upcomingTasks.take(5).toList();
+            StreamBuilder(
+              stream: tasksAsync,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-                if (displayTasks.isEmpty) {
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
+
+                final tasks = snapshot.data ?? [];
+
+                if (tasks.isEmpty) {
                   return const Center(
                     child: Padding(
                       padding: EdgeInsets.all(16.0),
@@ -101,10 +102,8 @@ class DashboardScreen extends ConsumerWidget {
                   );
                 }
 
-                return _buildUpcomingTasks(context, ref, displayTasks);
+                return _buildUpcomingTasks(context, ref, tasks);
               },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, _) => Center(child: Text('Error: $error')),
             ),
 
             const SizedBox(height: 64),
@@ -165,7 +164,7 @@ class DashboardScreen extends ConsumerWidget {
   Widget _buildStatsOverview(
     BuildContext context,
     AsyncValue<List<HabitModel>> habitsAsync,
-    AsyncValue<List<Task>> tasksAsync,
+    Stream<List<Task>> tasksAsync,
   ) {
     return Row(
       children: [
@@ -186,22 +185,22 @@ class DashboardScreen extends ConsumerWidget {
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: _buildStatCard(
-            context,
-            title: 'Tasks Due',
-            value: tasksAsync.maybeWhen(
-              data: (tasks) => tasks
-                  .where((t) =>
-                      !t.isCompleted &&
-                      t.dueDate != null &&
-                      t.dueDate!.isBefore(
-                          DateTime.now().add(const Duration(days: 3))))
-                  .length
-                  .toString(),
-              orElse: () => '-',
-            ),
-            icon: LineIcons.calendarCheck,
-            color: Colors.orange,
+          child: StreamBuilder<List<Task>>(
+            stream: tasksAsync,
+            builder: (context, snapshot) {
+              return _buildStatCard(
+                context,
+                title: 'Tasks Due',
+                value: snapshot.hasData
+                    ? snapshot.data!
+                        .where((t) => t.dueDate != null && !t.isCompleted)
+                        .length
+                        .toString()
+                    : '-',
+                icon: LineIcons.calendarCheck,
+                color: Colors.orange,
+              );
+            },
           ),
         ),
       ],
@@ -366,63 +365,8 @@ class DashboardScreen extends ConsumerWidget {
 
     return Column(
       children: tasks.map((task) {
-        return CustomCard(
-          margin: const EdgeInsets.only(bottom: 8),
-          child: ListTile(
-            leading: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: task.color ?? task.category.defaultColor,
-                  width: 2,
-                ),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                task.category.icon,
-                size: 20,
-                color: task.color ?? task.category.defaultColor,
-              ),
-            ),
-            title: Text(task.title),
-            subtitle: task.dueDate != null
-                ? Row(
-                    children: [
-                      Icon(
-                        LineIcons.calendar,
-                        size: 14,
-                        color: _getDueDateColor(task.dueDate!),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        dateFormat.format(task.dueDate!),
-                        style: TextStyle(
-                          color: _getDueDateColor(task.dueDate!),
-                        ),
-                      ),
-                    ],
-                  )
-                : null,
-            trailing: IconButton(
-              icon: Icon(
-                task.isCompleted ? Icons.check_circle : Icons.circle_outlined,
-                color: task.isCompleted ? Colors.green : Colors.grey,
-              ),
-              onPressed: () {
-                ref.read(tasksProvider.notifier).toggleTaskCompletion(task.id!);
-
-                AppSnackbar.showSuccess(
-                  context: context,
-                  message: task.isCompleted
-                      ? 'Task marked as incomplete'
-                      : 'Task completed!',
-                );
-              },
-            ),
-            onTap: () => context.push(
-              '${AppRouterConsts.taskDetail}/${task.id}',
-            ),
-          ),
+        return DashboardTaskItem(
+          task: task,
         );
       }).toList(),
     );

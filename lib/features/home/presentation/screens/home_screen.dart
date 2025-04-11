@@ -18,7 +18,7 @@ class HomeScreen extends ConsumerWidget {
     final currentIndex = ref.watch(currentIndexProvider);
 
     return Scaffold(
-      extendBody: true,
+      // extendBody: true,
       appBar: _buildAppBar(currentIndex),
       body: _buildBody(currentIndex),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
