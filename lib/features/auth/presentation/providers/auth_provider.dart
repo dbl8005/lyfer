@@ -1,11 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lyfer/features/auth/domain/models/user_model.dart';
-import 'package:lyfer/features/auth/data/services/auth_service.dart';
+import 'package:lyfer/features/auth/data/repository/auth_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 // Provider for the AuthService instance
-final authServiceProvider = Provider<AuthService>((ref) {
-  return AuthService();
+final authServiceProvider = Provider<AuthRepository>((ref) {
+  return AuthRepository();
 });
 
 // Provider to stream authentication state changes

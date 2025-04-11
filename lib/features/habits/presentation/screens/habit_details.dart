@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:line_icons/line_icons.dart';
+import 'package:logger/logger.dart';
 import 'package:lyfer/core/router/router.dart';
 import 'package:lyfer/core/utils/dialogs/confirm_dialog.dart';
 import 'package:lyfer/core/utils/snackbars/snackbar.dart';
@@ -10,7 +11,6 @@ import 'package:lyfer/features/habits/presentation/providers/habits_provider.dar
 import 'package:lyfer/features/habits/presentation/widgets/detail_widgets/habit_calendar_view.dart';
 import 'package:lyfer/features/habits/presentation/widgets/detail_widgets/habit_header_card.dart';
 import 'package:lyfer/features/habits/presentation/widgets/detail_widgets/habit_statistics.dart';
-import 'package:lyfer/features/habits/data/repositories/habit_repository.dart';
 import 'package:lyfer/features/notes/models/note_model.dart';
 import 'package:lyfer/features/notes/presentation/widgets/notes_grid_view.dart';
 import 'package:lyfer/features/notes/services/note_service.dart';
@@ -40,6 +40,8 @@ class _HabitDetailsState extends ConsumerState<HabitDetails> {
   /// The currently selected day in the calendar
   DateTime? _selectedDay;
 
+  var logger = Logger();
+
   @override
   void initState() {
     super.initState();
@@ -56,7 +58,12 @@ class _HabitDetailsState extends ConsumerState<HabitDetails> {
         notes = fetchedNotes;
         isLoading = false;
       });
-    } catch (e) {
+    } catch (e, stackTrace) {
+      logger.e(
+        'Error loading notes: $e',
+        error: e,
+        stackTrace: stackTrace,
+      );
       setState(() {
         isLoading = false;
       });
@@ -86,7 +93,13 @@ class _HabitDetailsState extends ConsumerState<HabitDetails> {
           );
           context.pop();
         }
-      } catch (e) {
+      } catch (e, stackTrace) {
+        logger.e(
+          'Error deleting habit: $e',
+          error: e,
+          stackTrace: stackTrace,
+        );
+
         if (mounted) {
           AppSnackbar.show(
             context: context,

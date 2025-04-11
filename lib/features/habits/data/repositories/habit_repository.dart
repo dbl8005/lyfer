@@ -4,10 +4,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lyfer/features/habits/domain/models/habit_model.dart';
 
 class HabitRepository {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  // Firebase Firestore instance
+
+  final FirebaseFirestore _firestore;
   final String? userId;
 
-  HabitRepository({required this.userId});
+  HabitRepository({
+    required this.userId,
+    FirebaseFirestore? firestore,
+  }) : _firestore = firestore ?? FirebaseFirestore.instance;
 
   // Collection references
   CollectionReference<Map<String, dynamic>> get _usersCollection =>

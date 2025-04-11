@@ -3,8 +3,21 @@ import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:lyfer/features/auth/domain/models/user_model.dart';
 
-class AuthService {
-  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+class AuthRepository {
+  final FirebaseAuth _firebaseAuth;
+  final GoogleSignIn _googleSignIn;
+  AuthRepository({
+    FirebaseAuth? firebaseAuth,
+    GoogleSignIn? googleSignIn,
+  })  : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
+        _googleSignIn = googleSignIn ?? GoogleSignIn();
+
+  // For testing
+  AuthRepository.test({
+    required FirebaseAuth firebaseAuth,
+    required GoogleSignIn googleSignIn,
+  })  : _firebaseAuth = firebaseAuth,
+        _googleSignIn = googleSignIn;
 
   // Stream to listen for auth state changes
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
@@ -25,6 +38,8 @@ class AuthService {
         email: email,
         password: password,
       );
+      final firebaseUser = userCredential.user;
+      if (firebaseUser == null) return null;
       return UserModel.fromFirebaseUser(userCredential.user);
     } on FirebaseAuthException {
       rethrow;
@@ -60,7 +75,7 @@ class AuthService {
   Future<void> signOut() async {
     final GoogleSignIn googleSignIn = GoogleSignIn();
     try {
-      await googleSignIn.signOut(); // Sign out from Google if used
+      await _googleSignIn.signOut(); // Sign out from Google if used
       await _firebaseAuth.signOut();
     } catch (e) {
       throw Exception('Error signing out: $e');

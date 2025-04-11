@@ -52,8 +52,9 @@ class HabitTile extends ConsumerWidget {
 
   // Calculate current streak
   int _calculateCurrentStreak(WidgetRef ref) {
-    final streakCalculator =
-        ref.read(habitsRepositoryProvider.notifier).getStreakForHabit(habit);
+    final streakCalculator = ref
+        .read(habitsRepositoryProvider.notifier)
+        .calculateAndUpdateStreak(habit);
     return streakCalculator;
   }
 

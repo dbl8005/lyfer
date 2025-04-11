@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:line_icons/line_icon.dart';
 import 'package:line_icons/line_icons.dart';
+import 'package:logger/logger.dart';
 
-import 'package:lyfer/core/config/enums/icon_enum.dart';
 import 'package:lyfer/core/shared/widgets/form/custom_text_field.dart';
 import 'package:lyfer/core/utils/snackbars/snackbar.dart';
 import 'package:lyfer/features/habits/domain/enums/habit_enums.dart';
@@ -12,10 +12,9 @@ import 'package:lyfer/features/habits/domain/models/habit_model.dart';
 import 'package:lyfer/features/habits/presentation/providers/habits_provider.dart';
 import 'package:lyfer/features/habits/presentation/widgets/form/category_selector.dart';
 import 'package:lyfer/features/habits/presentation/widgets/form/habit_color_picker.dart';
-import 'package:lyfer/features/habits/presentation/widgets/form/habit_text_field.dart';
 import 'package:lyfer/features/habits/presentation/widgets/form/priority_selector.dart';
 import 'package:lyfer/features/habits/presentation/widgets/form/reminder_time_picker.dart';
-import 'package:lyfer/features/habits/data/repositories/habit_repository.dart';
+import 'package:lyfer/features/habits/presentation/widgets/skeleton/habit_details_skeleton.dart';
 
 class EditHabitScreen extends ConsumerStatefulWidget {
   final HabitModel habit;
@@ -47,6 +46,7 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
   late TimeOfDay? _reminderTime; // Simplified to match HabitModel
 
   bool _isLoading = false;
+  var logger = Logger();
 
   @override
   void initState() {
@@ -124,7 +124,13 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
           backgroundColor: Colors.green,
         );
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      // Log the error for debugging
+      logger.e(
+        'Error updating habit: $e',
+        error: e,
+        stackTrace: stackTrace,
+      );
       if (mounted) {
         AppSnackbar.show(
           context: context,
@@ -174,7 +180,13 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
           backgroundColor: Colors.green,
         );
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      // Log the error for debugging
+      logger.e(
+        'Error deleting habit: $e',
+        error: e,
+        stackTrace: stackTrace,
+      );
       if (mounted) {
         AppSnackbar.show(
           context: context,
@@ -297,6 +309,10 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading && widget.habit == null) {
+      return const HabitDetailsSkeleton();
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Habit'),

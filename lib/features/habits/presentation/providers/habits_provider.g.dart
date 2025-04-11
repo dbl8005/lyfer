@@ -23,7 +23,7 @@ final habitsStreamProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef HabitsStreamRef = AutoDisposeStreamProviderRef<List<HabitModel>>;
-String _$habitsRepositoryHash() => r'bfafacd2153899ff032ff055a9473c3ea51031ca';
+String _$habitsRepositoryHash() => r'ceb8004a7f66115fb0127dfdabe35a18e18409da';
 
 /// See also [HabitsRepository].
 @ProviderFor(HabitsRepository)
@@ -39,7 +39,7 @@ final habitsRepositoryProvider = AutoDisposeAsyncNotifierProvider<
 );
 
 typedef _$HabitsRepository = AutoDisposeAsyncNotifier<List<HabitModel>>;
-String _$selectedDateHash() => r'8b2edf535e845e65028edfc4481edc051efec67a';
+String _$selectedDateHash() => r'587eebf9e6a68e26118fe99ebcf13d6a94f2ff77';
 
 /// See also [SelectedDate].
 @ProviderFor(SelectedDate)
@@ -54,7 +54,7 @@ final selectedDateProvider =
 );
 
 typedef _$SelectedDate = AutoDisposeNotifier<DateTime>;
-String _$currentSectionHash() => r'2e41b48d63a8ed2dc8972547cec51a1eb4f6c0c2';
+String _$currentSectionHash() => r'62e151592650a160296e9b1b63bede626a2f3b41';
 
 /// See also [CurrentSection].
 @ProviderFor(CurrentSection)
@@ -70,7 +70,7 @@ final currentSectionProvider =
 );
 
 typedef _$CurrentSection = AutoDisposeNotifier<DaySection>;
-String _$groupedHabitsHash() => r'e3cf18053327dded747e6e7d86d5971d6e45853e';
+String _$groupedHabitsHash() => r'9cb869a6fd321a5638399dc674ad5c484c46b183';
 
 /// See also [GroupedHabits].
 @ProviderFor(GroupedHabits)

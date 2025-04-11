@@ -9,199 +9,181 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'habits_provider.g.dart';
 
-//Habits provider
+/// Custom exceptions for habit operations
+class HabitsException implements Exception {
+  final String message;
+  HabitsException(this.message);
+
+  @override
+  String toString() => message;
+}
+
+class UnauthenticatedUserException extends HabitsException {
+  UnauthenticatedUserException() : super('User not authenticated');
+}
+
 @riverpod
 class HabitsRepository extends _$HabitsRepository {
+  /// Gets repository instance for an authenticated user
+  HabitRepository _getRepository() {
+    final authState = ref.watch(authStateChangesProvider).asData?.value;
+    if (authState == null) {
+      throw UnauthenticatedUserException();
+    }
+    return HabitRepository(userId: authState.uid);
+  }
+
   @override
   Future<List<HabitModel>> build() async {
-    final authState = ref.watch(authStateChangesProvider).asData?.value;
-    if (authState == null) {
-      return []; // Return an empty list if the user is not authenticated
+    try {
+      return await _getRepository().getHabits();
+    } on UnauthenticatedUserException {
+      return []; // Return empty list if not authenticated
+    } catch (e) {
+      throw HabitsException('Failed to load habits: $e');
     }
-    final repository = HabitRepository(userId: authState.uid);
-    return await repository.getHabits();
   }
-  // HabitRepository build() {
-  //   final authState = ref.watch(authStateChangesProvider).asData?.value;
-  //   return HabitRepository(userId: authState?.uid);
-  // }
 
-  // Stream provider for reactive UI updates
+  /// Stream provider for reactive UI updates
   Stream<List<HabitModel>> habitsStream() {
-    final authState = ref.watch(authStateChangesProvider).asData?.value;
-    if (authState == null) {
-      return Stream.value(
-          []); // Return an empty stream if the user is not authenticated
+    try {
+      return _getRepository().watchHabits().handleError(
+            (error) => throw HabitsException('Error watching habits: $error'),
+          );
+    } on UnauthenticatedUserException {
+      return Stream.value([]);
+    } catch (e) {
+      return Stream.error(HabitsException('Failed to stream habits: $e'));
     }
-    final repository = HabitRepository(userId: authState.uid);
-    return repository.watchHabits();
   }
 
-  // Add a new habit
+  /// Add a new habit
   Future<void> createHabit(HabitModel habit) async {
-    final authState = ref.watch(authStateChangesProvider).asData?.value;
-    if (authState == null) {
-      throw Exception('User not authenticated');
+    try {
+      await _getRepository().createHabit(habit);
+      ref.invalidateSelf();
+    } catch (e) {
+      throw HabitsException('Failed to create habit: $e');
     }
-    final repository = HabitRepository(userId: authState.uid);
-    await repository.createHabit(habit);
   }
 
-  // Update an existing habit
+  /// Update an existing habit
   Future<void> updateHabit(HabitModel habit) async {
-    final authState = ref.watch(authStateChangesProvider).asData?.value;
-    if (authState == null) {
-      throw Exception('User not authenticated');
+    try {
+      await _getRepository().updateHabit(habit);
+      ref.invalidateSelf();
+    } catch (e) {
+      throw HabitsException('Failed to update habit: $e');
     }
-    final repository = HabitRepository(userId: authState.uid);
-    // Update the habit in the repository
-    await repository.updateHabit(habit);
   }
 
-  // Delete a habit
+  /// Delete a habit by ID
   Future<void> deleteHabit(String habitId) async {
-    final authState = ref.watch(authStateChangesProvider).asData?.value;
-    if (authState == null) {
-      throw Exception('User not authenticated');
+    try {
+      await _getRepository().deleteHabit(habitId);
+      ref.invalidateSelf();
+    } catch (e) {
+      throw HabitsException('Failed to delete habit: $e');
     }
-    // Get the user ID from the auth state
-    final repository = HabitRepository(userId: authState.uid);
-    // Delete the habit from the repository
-    await repository.deleteHabit(habitId);
   }
 
-  // Toggle habit completion
+  /// Toggle habit completion for a specific date
   Future<HabitModel> toggleHabitCompletion(
       String habitId, DateTime date) async {
-    final authState = ref.watch(authStateChangesProvider).asData?.value;
-    if (authState == null) {
-      throw Exception('User not authenticated');
+    try {
+      final repository = _getRepository();
+      await repository.toggleHabitCompletion(habitId, date);
+      return await repository.getHabitById(habitId);
+    } catch (e) {
+      throw HabitsException('Failed to toggle habit completion: $e');
     }
-    // Get the user ID from the auth state
-    final repository = HabitRepository(userId: authState.uid);
-    await repository.toggleHabitCompletion(habitId, date);
-    return await repository.getHabitById(habitId);
   }
 
-  // Get a habit by ID
+  /// Get a habit by ID
   Future<HabitModel> getHabitById(String habitId) async {
-    final authState = ref.watch(authStateChangesProvider).asData?.value;
-    if (authState == null) {
-      throw Exception('User not authenticated');
+    try {
+      return await _getRepository().getHabitById(habitId);
+    } catch (e) {
+      throw HabitsException('Failed to get habit: $e');
     }
-    // Get the user ID from the auth state
-    final repository = HabitRepository(userId: authState.uid);
-    return await repository.getHabitById(habitId);
   }
 
-  // Update a habit's streak
+  /// Update a habit's streak
   Future<int> updateStreak(String habitId, int newStreak) async {
-    final authState = ref.watch(authStateChangesProvider).asData?.value;
-    if (authState == null) {
-      throw Exception('User not authenticated');
+    try {
+      return await _getRepository().updateHabitStreak(habitId, newStreak);
+    } catch (e) {
+      throw HabitsException('Failed to update streak: $e');
     }
-    // Get the user ID from the auth state
-    final repository = HabitRepository(userId: authState.uid);
-    // Update the habit's streak in the repository
-    return await repository.updateHabitStreak(habitId, newStreak);
   }
 
-// Get streak for a habit
-  int getStreakForHabit(HabitModel habit) {
+  /// Calculate and update the streak for a habit
+  int calculateAndUpdateStreak(HabitModel habit) {
+    if (habit.id == null) {
+      throw HabitsException('Habit ID cannot be null');
+    }
+
     final newStreak = StreakCalculator.calculateStreak(
       habit.completedDates.toList(),
       habit.frequency,
       habit.timesPerPeriod,
     );
+
     updateStreak(habit.id!, newStreak);
     return newStreak;
   }
 }
 
-// Stream provider for habitsStream
 @riverpod
 Stream<List<HabitModel>> habitsStream(HabitsStreamRef ref) {
   return ref.watch(habitsRepositoryProvider.notifier).habitsStream();
 }
 
-// Date Selection provider
 @riverpod
 class SelectedDate extends _$SelectedDate {
   @override
-  DateTime build() {
-    return DateTime.now();
-  }
+  DateTime build() => DateTime.now();
 
-  void update(DateTime date) {
-    state = date;
-  }
+  void update(DateTime date) => state = date;
 }
 
 @riverpod
 class CurrentSection extends _$CurrentSection {
   @override
   DaySection build() {
-    final now = TimeOfDay.now();
-    final hour = now.hour;
+    return _getDaySectionFromTime(TimeOfDay.now());
+  }
 
-    if (hour >= 5 && hour < 12) {
-      return DaySection.morning;
-    } else if (hour >= 12 && hour < 17) {
-      return DaySection.afternoon;
-    } else if (hour >= 17 && hour < 21) {
-      return DaySection.evening;
-    } else {
-      return DaySection.night;
-    }
+  DaySection _getDaySectionFromTime(TimeOfDay time) {
+    final hour = time.hour;
+    if (hour >= 5 && hour < 12) return DaySection.morning;
+    if (hour >= 12 && hour < 17) return DaySection.afternoon;
+    if (hour >= 17 && hour < 21) return DaySection.evening;
+    return DaySection.night;
   }
 }
 
-// Grouped habits provider
 @riverpod
 class GroupedHabits extends _$GroupedHabits {
   @override
   Map<DaySection, List<HabitModel>> build() {
-    // Watch the habitsStreamProvider, which returns an AsyncValue
-    final habitsAsyncValue = ref.watch(habitsStreamProvider);
-
-    // Use `when` to handle the different states
-    return habitsAsyncValue.when(
-      data: (habits) => _groupHabitsBySection(habits),
-      loading: () => _getEmptyGroupedHabits(),
-      error: (_, __) => _getEmptyGroupedHabits(),
-    );
+    return ref.watch(habitsStreamProvider).when(
+          data: _groupHabitsBySection,
+          loading: _getEmptyGroupedHabits,
+          error: (_, __) => _getEmptyGroupedHabits(),
+        );
   }
 
-  // Helper function to group habits by section
   Map<DaySection, List<HabitModel>> _groupHabitsBySection(
       List<HabitModel> habits) {
-    return {
-      DaySection.morning: habits
-          .where((habit) => habit.daySection == DaySection.morning)
-          .toList(),
-      DaySection.afternoon: habits
-          .where((habit) => habit.daySection == DaySection.afternoon)
-          .toList(),
-      DaySection.evening: habits
-          .where((habit) => habit.daySection == DaySection.evening)
-          .toList(),
-      DaySection.night: habits
-          .where((habit) => habit.daySection == DaySection.night)
-          .toList(),
-      DaySection.allDay: habits
-          .where((habit) => habit.daySection == DaySection.allDay)
-          .toList(),
-    };
+    final result = _getEmptyGroupedHabits();
+    for (final habit in habits) {
+      result[habit.daySection]?.add(habit);
+    }
+    return result;
   }
 
-  // Helper function to return an empty grouped habits map
-  Map<DaySection, List<HabitModel>> _getEmptyGroupedHabits() {
-    return {
-      DaySection.morning: [],
-      DaySection.afternoon: [],
-      DaySection.evening: [],
-      DaySection.night: [],
-      DaySection.allDay: [],
-    };
-  }
+  Map<DaySection, List<HabitModel>> _getEmptyGroupedHabits() => {
+        for (final section in DaySection.values) section: <HabitModel>[],
+      };
 }
