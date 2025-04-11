@@ -1,16 +1,38 @@
-# lyfer
+# Lyfer - Habit & Task Tracker
 
-A new Flutter project.
+![Lyfer Banner](docs/images/banner.png)
 
-## Getting Started
+## 📱 Overview
+Lyfer is a Flutter application for tracking habits, tasks, and notes, helping users build consistent routines and manage their daily lives.
 
-This project is a starting point for a Flutter application.
+## ✨ Features
+- Habit tracking with streaks
+- Task management
+- Notes and journaling
+- [Add your other features]
 
-A few resources to get you started if this is your first Flutter project:
+## 🖼️ Screenshots
+<div style="display: flex; flex-wrap: wrap;">
+  <img src="docs/images/screenshot1.png" width="200"/>
+  <img src="docs/images/screenshot2.png" width="200"/>
+  <!-- Add more screenshots -->
+</div>
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## 🔧 Tech Stack
+- Flutter & Dart
+- Riverpod for state management
+- Firebase (Firestore, Authentication)
+- [Any other technologies]
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## 🏗️ Architecture
+![Architecture Diagram](docs/images/architecture.png)
+
+## 🚀 Getting Started
+1. Clone the repository
+2. Set up Firebase project
+3. Add your `google-services.json` and `GoogleService-Info.plist`
+4. Run `flutter pub get`
+5. Run `flutter run`
+
+## 🧪 Testing
+[Explain your testing approach]
