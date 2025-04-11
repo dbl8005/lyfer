@@ -8,12 +8,14 @@ class UserModel {
   final String? email;
   final String? photoUrl;
   final String? name;
+  final bool? isEmailVerified;
 
   UserModel({
     required this.uid,
     this.email,
     this.photoUrl,
     this.name,
+    this.isEmailVerified,
   });
 
   factory UserModel.fromFirebaseUser(User? user) {
@@ -25,6 +27,7 @@ class UserModel {
       email: user.email,
       photoUrl: user.photoURL,
       name: user.displayName,
+      isEmailVerified: user.emailVerified,
     );
   }
 
@@ -33,13 +36,14 @@ class UserModel {
     String? email,
     String? photoUrl,
     String? name,
+    bool? isEmailVerified,
   }) {
     return UserModel(
-      uid: uid ?? this.uid,
-      email: email ?? this.email,
-      photoUrl: photoUrl ?? this.photoUrl,
-      name: name ?? this.name,
-    );
+        uid: uid ?? this.uid,
+        email: email ?? this.email,
+        photoUrl: photoUrl ?? this.photoUrl,
+        name: name ?? this.name,
+        isEmailVerified: isEmailVerified ?? this.isEmailVerified);
   }
 
   Map<String, dynamic> toMap() {
@@ -48,6 +52,7 @@ class UserModel {
       'email': email,
       'photoUrl': photoUrl,
       'name': name,
+      'isEmailVerified': isEmailVerified,
     };
   }
 
@@ -57,6 +62,9 @@ class UserModel {
       email: map['email'] != null ? map['email'] as String : null,
       photoUrl: map['photoUrl'] != null ? map['photoUrl'] as String : null,
       name: map['name'] != null ? map['name'] as String : null,
+      isEmailVerified: map['isEmailVerified'] != null
+          ? map['isEmailVerified'] as bool
+          : null,
     );
   }
 
@@ -67,7 +75,7 @@ class UserModel {
 
   @override
   String toString() {
-    return 'UserModel(uid: $uid, email: $email, photoUrl: $photoUrl, name: $name)';
+    return 'UserModel(uid: $uid, email: $email, photoUrl: $photoUrl, name: $name, isEmailVerified: $isEmailVerified,)';
   }
 
   @override
@@ -77,11 +85,16 @@ class UserModel {
     return other.uid == uid &&
         other.email == email &&
         other.photoUrl == photoUrl &&
-        other.name == name;
+        other.name == name &&
+        other.isEmailVerified == isEmailVerified;
   }
 
   @override
   int get hashCode {
-    return uid.hashCode ^ email.hashCode ^ photoUrl.hashCode ^ name.hashCode;
+    return uid.hashCode ^
+        email.hashCode ^
+        photoUrl.hashCode ^
+        name.hashCode ^
+        isEmailVerified.hashCode;
   }
 }

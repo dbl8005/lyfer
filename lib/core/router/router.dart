@@ -1,7 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:logger/logger.dart';
 import 'package:lyfer/features/auth/presentation/screens/verify_email_screen.dart';
 import 'package:lyfer/features/auth/presentation/providers/auth_provider.dart';
 import 'package:lyfer/features/auth/presentation/screens/login_screen.dart';
@@ -12,16 +12,16 @@ import 'package:lyfer/features/habits/presentation/screens/edit_habit_screen.dar
 import 'package:lyfer/features/habits/presentation/screens/habit_details.dart';
 import 'package:lyfer/features/habits/presentation/screens/habits_screen.dart';
 import 'package:lyfer/features/habits/presentation/screens/new_habit_screen.dart';
-import 'package:lyfer/features/habits/data/repositories/habit_repository.dart';
+import 'package:lyfer/features/habits/presentation/widgets/skeleton/habit_details_skeleton.dart';
 import 'package:lyfer/features/home/presentation/screens/home_screen.dart';
 import 'package:lyfer/features/notes/models/note_model.dart';
 import 'package:lyfer/features/notes/presentation/screens/new_note_screen.dart';
 import 'package:lyfer/features/notes/presentation/screens/note_screen.dart';
 import 'package:lyfer/features/notes/services/note_service.dart';
 import 'package:lyfer/features/settings/presentation/screens/settings_screen.dart';
+import 'package:lyfer/features/tasks/domain/models/task_model.dart';
 import 'package:lyfer/features/tasks/presentation/screens/task_detail_screen.dart';
 import 'package:lyfer/features/tasks/presentation/screens/task_form_screen.dart';
-import 'package:lyfer/features/tasks/presentation/screens/tasks_screen.dart';
 
 class AppRouterConsts {
   static const String home = '/';
@@ -43,6 +43,7 @@ class AppRouterConsts {
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateChangesProvider).asData?.value;
+  final logger = Logger();
 
   return GoRouter(
     initialLocation: AppRouterConsts.login,
@@ -104,7 +105,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final habitId = state.pathParameters['id']!;
           // You'll need to fetch the habit first
-          final habitService = ref.read(habitsProvider.notifier);
+          final habitService = ref.read(habitsRepositoryProvider.notifier);
           return FutureBuilder<HabitModel>(
             future: habitService.getHabitById(habitId),
             builder: (context, snapshot) {
@@ -113,6 +114,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     body: Center(child: CircularProgressIndicator()));
               }
               if (!snapshot.hasData || snapshot.hasError) {
+                // Handle the error case here
+                logger.e(
+                  'Error fetching habit: ${snapshot.error}',
+                  error: snapshot.error,
+                  stackTrace: snapshot.stackTrace,
+                );
                 return const Scaffold(
                     body: Center(child: Text('Habit not found')));
               }
@@ -125,16 +132,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '${AppRouterConsts.habitDetails}/:id',
         builder: (context, state) {
           final habitId = state.pathParameters['id']!;
-          // You'll need to fetch the habit first
-          final habitService = ref.read(habitsProvider.notifier);
+          final habitService = ref.read(habitsRepositoryProvider.notifier);
           return FutureBuilder<HabitModel>(
             future: habitService.getHabitById(habitId),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Scaffold(
-                    body: Center(child: CircularProgressIndicator()));
+                return const HabitDetailsSkeleton();
               }
               if (!snapshot.hasData || snapshot.hasError) {
+                // Handle the error case here
+                logger.e(
+                  'Error fetching habit: ${snapshot.error}',
+                  error: snapshot.error,
+                  stackTrace: snapshot.stackTrace,
+                );
                 return const Scaffold(
                     body: Center(child: Text('Habit not found')));
               }
@@ -159,6 +170,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     body: Center(child: CircularProgressIndicator()));
               }
               if (!snapshot.hasData || snapshot.hasError) {
+                // Handle the error case here
+                logger.e(
+                  'Error fetching note: ${snapshot.error}',
+                  error: snapshot.error,
+                  stackTrace: snapshot.stackTrace,
+                );
                 return const Scaffold(
                     body: Center(child: Text('Note not found')));
               }
@@ -185,8 +202,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '${AppRouterConsts.taskDetail}/:id',
         builder: (context, state) {
+          final task = state.extra as Task;
           final id = state.pathParameters['id']!;
-          return TaskDetailScreen(taskId: id);
+          return TaskDetailScreen(
+            task: task,
+          );
         },
       ),
       GoRoute(

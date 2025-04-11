@@ -1,145 +1,141 @@
-Auth                                                  
-Currently have:
-1. working login
-2. working register
-3. manual redirect to home
-4. improve redirect logic to redirect base on auth status, and check if user can register
-5. impl email verification
-6. implement google signin.
-7. working toggle obscure text for passwords
+### Areas for Improvement
 
+1. **Code Organization and Modularity**:
+   - The router.dart file is large and contains both route definitions and logic for fetching data. Consider separating route definitions and data-fetching logic into different files or classes for better maintainability.
+   - Break down large widgets into smaller, reusable components (e.g., `HabitDetails` and `EditHabitScreen` could benefit from modularization).
 
-To do list:
-* impl forgot password
-* improve ui
+2. **Error Handling**:
+   - Improve error messages for users. For example, instead of "Habit not found," provide actionable feedback like "The habit you're looking for doesn't exist. Please try again."
+   - Add logging for errors to help with debugging in production.
 
-                                            - Habits -
-I have:
-* habits page with chronological sections and auto-scroll to current section
-* create habit with comprehensive options
-* edit habit functionality
-* category-based habit organization
-* specific day selection for better habit scheduling
-* priority settings for habits
-* reminder configuration
-* note taking for habits
-* organized widget structure with better component separation
-* improved accessibility with semantic labels
-* better error handling with retry functionality
+3. **State Management**:
+   - While `Riverpod` is used effectively, some providers (e.g., `habitsRepositoryProvider`) could benefit from better abstraction to reduce coupling between UI and business logic.
 
-I need to make:
-* home page, with tabs for habits, tasks, settings.
-* habit dashboard improvements
-* implement notification system for reminders
-* better error handling and offline support
-    
-# Habits Feature Summary
+4. **UI/UX Enhancements**:
+   - Add loading skeletons or shimmer effects for better user experience during data fetching.
+   - Improve the design of error and empty states (e.g., add illustrations or call-to-action buttons).
 
-## Core Functionality
+5. **Testing**:
+   - Add unit tests for providers, repositories, and utility functions.
+   - Add widget tests for critical screens like `HabitDetails` and `EditHabitScreen`.
+   - Add integration tests for navigation and user flows.
 
-The habits feature provides a comprehensive habit tracking system in your Flutter app with the following functionality:
+6. **Performance Optimization**:
+   - Optimize the `FutureBuilder` usage by caching data where possible to avoid redundant network calls.
+   - Use `const` constructors wherever possible to reduce widget rebuilds.
 
-1. **Habit Display**
-   - `HabitsScreen` organizes habits by time of day (morning, afternoon, evening, night, all day)
-   - The current time section is highlighted and auto-scrolled to on load
-   - Each habit displays a `HabitTile` with relevant information including category icon, name, and status
+7. **Accessibility**:
+   - Add semantic labels and accessibility features to all widgets (e.g., `CircularProgressIndicator` and `Text` widgets).
+   - Ensure color contrast meets accessibility standards.
 
-2. **Habit Management**
-   - Create new habits via `NewHabitScreen`
-   - Edit existing habits via `EditHabitScreen`
-   - Configure properties: name, category, color, description, time of day, frequency, priority
-   - Support for frequency types: daily, weekly, monthly, custom
-   - Set completion targets (e.g., 3 times per week)
-   - Select specific days of the week for habit completion
+8. **Documentation**:
+   - Add more comments and documentation for public methods, classes, and widgets.
+   - Create a README.md with detailed instructions for contributors and developers.
 
-3. **Habit Tracking**
-   - Mark habits as completed for the day
-   - Track completion streaks via `StreakCalculator`
-   - Visual progress indicator for period goals
-   - Streak tracking based on time period (daily/weekly/monthly)
-   - Smart day selection ensures habits are only checked for scheduled days
+---
 
-4. **Data Management**
-   - `HabitService` handles CRUD operations using Firebase
-   - Stream-based updates for real-time data
+### Things to Add to the App
 
-5. **Streaks Logic**
-   - Daily: Streak based on consecutive days
-   - Weekly: Streak based on meeting weekly completion target (e.g., 3 times per week)
-   - Monthly: Streak based on meeting monthly completion target
+1. **Features**:
+   - **Push Notifications**: Add reminders for habits and tasks using Firebase Cloud Messaging.
+   - **Analytics**: Integrate Firebase Analytics to track user behavior and app usage.
+   - **Offline Mode**: Allow users to access and modify data offline, syncing changes when back online.
+   - **Dark Mode**: Add a toggle for light and dark themes.
+   - **Search Functionality**: Add a search bar to find habits, tasks, or notes quickly.
+   - **Habit Streaks Visualization**: Add a streak tracker with visual graphs or charts.
+   - **User Profiles**: Allow users to customize their profiles with avatars and preferences.
 
-6. **Categorization and Priority**
-   - Habits organized by categories with appropriate icons
-   - Priority levels affect visual display and can be used for sorting
-   - Customizable color schemes for each habit
+2. **UI/UX Improvements**:
+   - Add animations for transitions between screens.
+   - Use a consistent design system for buttons, cards, and typography.
+   - Add onboarding screens for new users.
 
-7. **Notes System**
-   - Create and manage notes for each habit
-   - Notes feature titles, content, tags, and color-coding
+3. **Backend Enhancements**:
+   - Add Firestore security rules to ensure data integrity and security.
+   - Implement server-side validation for critical operations.
 
-## Recent Improvements
+4. **Monetization**:
+   - Add in-app purchases or subscriptions for premium features (e.g., advanced analytics, custom themes).
+   - Integrate ads (if appropriate) using Google AdMob.
 
-1. **UI Organization and Navigation**
-   - Fixed routing issues for the note screen
-   - Improved habit details screen
-   - Implemented chronological ordering of sections with auto-scroll to current time period
-   - Extracted reusable components (DayNavigator, HabitSection, SectionHeader)
-   - Organized widget folder into logical categories (display, navigation, form, etc.)
+5. **Localization**:
+   - Add support for multiple languages to reach a global audience.
 
-2. **Enhanced Habit Configuration**
-   - Added day selector for specific weekday scheduling
-   - Replaced icon selection with category-based system
-   - Implemented priority selection with visual indicators
-   - Added comprehensive reminder system with time options
+6. **Settings**:
+   - Add a settings screen for managing preferences like notifications, themes, and account details.
 
-3. **Data Model Updates**
-   - Expanded HabitModel to include selectedDays, priority, and reminder settings
-   - Added proper serialization/deserialization for new fields
-   - Improved handling of category data
+---
 
-4. **Better Component Reusability**
-   - Created reusable widgets like DaySelector, CategorySelector, and PrioritySelector
-   - Improved consistency between screens for habit creation and editing
-   - Extracted common UI patterns into dedicated widget files
-   - Created proper widget index files for cleaner imports
+### Roadmap to Publish the App
 
-5. **Architecture Improvements**
-   - Separated UI from state management with dedicated provider files
-   - Added proper type safety with enum usage for habit properties
-   - Extracted constants to dedicated constants file
-   - Improved accessibility with semantic labels and screen reader support
-   - Enhanced error handling with dedicated error display components
+#### **Phase 1: Development (1-2 Months)**
+1. **Core Features**:
+   - Finalize habit, task, and note management features.
+   - Add push notifications for reminders.
+   - Implement offline mode with Firestore caching.
 
-## Planned Improvements
+2. **UI/UX**:
+   - Redesign screens for better usability and consistency.
+   - Add animations and transitions.
 
-1. **UI/UX Refinements**
-   - Add animations for habit completion actions (completion confetti, streak celebration)
-   - Implement calendar/history view for habits with month/week visualization
-   - Enhance statistics display with charts and insights (completion rate, streak history)
-   - Add theme support with dark/light mode transitions for all habit components
-   - Implement responsive layouts for tablet support
+3. **Testing**:
+   - Write unit tests for providers and repositories.
+   - Write widget tests for critical screens.
+   - Conduct manual testing for edge cases.
 
-2. **Feature Gaps to Fill**
-   - Implement notification scheduling for reminders with exact alarm support
-   - Add habit archiving UI and functionality with archive/restore flows
-   - Implement target days tracking with visual countdown and completion forecasting
-   - Add bulk actions for habits (delete multiple, change category of multiple)
-   - Create habit templates for quick habit creation
+4. **Backend**:
+   - Finalize Firestore security rules.
+   - Add server-side validation.
 
-3. **Technical Improvements**
-   - Add proper error handling with fallback UI and error boundary widgets
-   - Implement offline support with local caching and sync resolution
-   - Optimize Firebase queries with indexing and pagination
-   - Add comprehensive unit and widget tests for all habit components
-   - Implement performance monitoring for list rendering and state updates
-   - Add proper logging for debugging and analytics
+---
 
-4. **Advanced Features**
-   - Expand category management with custom categories and category reordering
-   - Add habit suggestions based on user patterns and completion history
-   - Implement habit sharing or social challenges with friend invites
-   - Add data export/import functionality with CSV/JSON options
-   - Create habit insights system with AI-powered suggestions
-   - Implement gamification elements (streaks, achievements, milestones)
+#### **Phase 2: Pre-Launch (1 Month)**
+1. **Beta Testing**:
+   - Release the app to a closed group of beta testers using TestFlight (iOS) and Google Play Beta (Android).
+   - Collect feedback and fix bugs.
 
-The habit feature has evolved significantly with better component organization, scheduling options, categorization, priority handling, and UI improvements. The next phase will focus on implementing the actual notifications system, enhancing visualization, adding robust error handling, and improving code organization for better maintainability and testability.
+2. **Performance Optimization**:
+   - Profile the app for performance bottlenecks.
+   - Optimize network calls and widget rebuilds.
+
+3. **Accessibility**:
+   - Ensure the app meets accessibility standards.
+   - Add semantic labels and improve color contrast.
+
+4. **Documentation**:
+   - Update the README.md with detailed setup instructions.
+   - Add a CONTRIBUTING.md for open-source contributions.
+
+---
+
+#### **Phase 3: Launch (2 Weeks)**
+1. **App Store Submission**:
+   - Prepare app store assets (screenshots, descriptions, icons).
+   - Submit the app to the Apple App Store and Google Play Store.
+
+2. **Marketing**:
+   - Create a landing page for the app.
+   - Promote the app on social media and relevant forums.
+
+3. **Monitoring**:
+   - Monitor app analytics and crash reports.
+   - Respond to user feedback and reviews.
+
+---
+
+#### **Phase 4: Post-Launch (Ongoing)**
+1. **Feature Updates**:
+   - Add new features based on user feedback.
+   - Regularly update the app to fix bugs and improve performance.
+
+2. **Monetization**:
+   - Introduce premium features or ads.
+
+3. **Community Engagement**:
+   - Build a community around the app.
+   - Encourage user-generated content and feedback.
+
+4. **Localization**:
+   - Add support for additional languages.
+
+By following this roadmap, the app can be polished, published, and maintained effectively.

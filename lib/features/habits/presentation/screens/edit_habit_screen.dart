@@ -3,18 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:line_icons/line_icon.dart';
 import 'package:line_icons/line_icons.dart';
+import 'package:logger/logger.dart';
 
-import 'package:lyfer/core/config/enums/icon_enum.dart';
+import 'package:lyfer/core/shared/widgets/form/custom_text_field.dart';
 import 'package:lyfer/core/utils/snackbars/snackbar.dart';
 import 'package:lyfer/features/habits/domain/enums/habit_enums.dart';
 import 'package:lyfer/features/habits/domain/models/habit_model.dart';
 import 'package:lyfer/features/habits/presentation/providers/habits_provider.dart';
 import 'package:lyfer/features/habits/presentation/widgets/form/category_selector.dart';
 import 'package:lyfer/features/habits/presentation/widgets/form/habit_color_picker.dart';
-import 'package:lyfer/features/habits/presentation/widgets/form/habit_text_field.dart';
 import 'package:lyfer/features/habits/presentation/widgets/form/priority_selector.dart';
 import 'package:lyfer/features/habits/presentation/widgets/form/reminder_time_picker.dart';
-import 'package:lyfer/features/habits/data/repositories/habit_repository.dart';
+import 'package:lyfer/features/habits/presentation/widgets/skeleton/habit_details_skeleton.dart';
 
 class EditHabitScreen extends ConsumerStatefulWidget {
   final HabitModel habit;
@@ -34,20 +34,19 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
   late final TextEditingController _descriptionController;
 
   late Color? _selectedColor;
-  // Remove _selectedIcon as it's no longer used
-  late DaySection _selectedTimeOfDay;
+  late DaySection _selectedDaySection;
   late Frequency _selectedFrequency;
   late int _timesPerPeriod;
   late int? _targetDays;
-  late Set<int> _selectedDays;
+  late Set<WeekDay> _selectedDays; // Changed from Set<int> to Set<WeekDay>
 
   late Priority _selectedPriority;
   late String _selectedCategoryId;
   late Reminder _selectedReminderType;
-  late DaySection? _selectedReminderTime;
-  late TimeOfDay? _specificReminderTime;
+  late TimeOfDay? _reminderTime; // Simplified to match HabitModel
 
   bool _isLoading = false;
+  var logger = Logger();
 
   @override
   void initState() {
@@ -58,22 +57,30 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
         TextEditingController(text: widget.habit.description);
 
     _selectedColor = widget.habit.color;
-    // Remove the _selectedIcon initialization which uses the old system
-    _selectedTimeOfDay = widget.habit.preferredTime;
+    _selectedDaySection = widget.habit.daySection;
     _selectedFrequency = widget.habit.frequency;
     _timesPerPeriod = widget.habit.timesPerPeriod;
     _targetDays = widget.habit.targetDays;
 
-    // Make sure _selectedDays is properly initialized with a default if needed
+    // Use the habit's actual selectedDays (Set<WeekDay>)
     _selectedDays = widget.habit.selectedDays.isNotEmpty
         ? widget.habit.selectedDays
-        : (_selectedFrequency == Frequency.daily ? {0, 1, 2, 3, 4, 5, 6} : {});
+        : (_selectedFrequency == Frequency.daily
+            ? {
+                WeekDay.monday,
+                WeekDay.tuesday,
+                WeekDay.wednesday,
+                WeekDay.thursday,
+                WeekDay.friday,
+                WeekDay.saturday,
+                WeekDay.sunday
+              }
+            : {});
 
     _selectedPriority = widget.habit.priority;
     _selectedCategoryId = widget.habit.categoryId;
     _selectedReminderType = widget.habit.reminderType;
-    _selectedReminderTime = widget.habit.reminderTime;
-    _specificReminderTime = widget.habit.specificReminderTime;
+    _reminderTime = widget.habit.reminderTime;
   }
 
   @override
@@ -92,21 +99,22 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
     try {
       final updatedHabit = widget.habit.copyWith(
         name: _nameController.text,
-        categoryId: _selectedCategoryId, // Changed from iconName
+        categoryId: _selectedCategoryId,
         color: _selectedColor,
-        preferredTime: _selectedTimeOfDay,
+        daySection: _selectedDaySection, // Fixed: renamed from preferredTime
         description: _descriptionController.text,
         frequency: _selectedFrequency,
         timesPerPeriod: _timesPerPeriod,
         targetDays: _targetDays,
-        selectedDays: _selectedDays, // Add selected days
-        priority: _selectedPriority, // Add priority
-        reminderType: _selectedReminderType, // Add reminder type
-        reminderTime: _selectedReminderTime, // Add reminder time
-        specificReminderTime: _specificReminderTime, // Add specific time
+        selectedDays: _selectedDays, // Now correctly passes Set<WeekDay>
+        priority: _selectedPriority,
+        reminderType: _selectedReminderType,
+        reminderTime: _reminderTime, // Simplified to match HabitModel
       );
 
-      await ref.read(habitsProvider.notifier).updateHabit(updatedHabit);
+      await ref
+          .read(habitsRepositoryProvider.notifier)
+          .updateHabit(updatedHabit);
 
       if (mounted) {
         Navigator.of(context).pop();
@@ -116,7 +124,13 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
           backgroundColor: Colors.green,
         );
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      // Log the error for debugging
+      logger.e(
+        'Error updating habit: $e',
+        error: e,
+        stackTrace: stackTrace,
+      );
       if (mounted) {
         AppSnackbar.show(
           context: context,
@@ -155,7 +169,9 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
     setState(() => _isLoading = true);
 
     try {
-      await ref.read(habitsProvider.notifier).deleteHabit(widget.habit.id!);
+      await ref
+          .read(habitsRepositoryProvider.notifier)
+          .deleteHabit(widget.habit.id!);
       if (mounted) {
         Navigator.of(context).pop();
         AppSnackbar.show(
@@ -164,7 +180,13 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
           backgroundColor: Colors.green,
         );
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      // Log the error for debugging
+      logger.e(
+        'Error deleting habit: $e',
+        error: e,
+        stackTrace: stackTrace,
+      );
       if (mounted) {
         AppSnackbar.show(
           context: context,
@@ -198,8 +220,10 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
         Wrap(
           spacing: 8,
           children: List.generate(7, (index) {
+            final weekDay = WeekDay.values[index]; // Get the WeekDay enum value
             final dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-            final isSelected = _selectedDays.contains(index);
+            final isSelected = _selectedDays.contains(weekDay);
+
             return FilterChip(
               label: Text(dayNames[index]),
               selected: isSelected,
@@ -208,14 +232,14 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
                   // For daily habits, we always need at least one day selected
                   if (_selectedFrequency == Frequency.daily &&
                       _selectedDays.length == 1 &&
-                      _selectedDays.contains(index)) {
+                      _selectedDays.contains(weekDay)) {
                     return;
                   }
 
-                  if (_selectedDays.contains(index)) {
-                    _selectedDays.remove(index);
+                  if (_selectedDays.contains(weekDay)) {
+                    _selectedDays.remove(weekDay);
                   } else {
-                    _selectedDays.add(index);
+                    _selectedDays.add(weekDay);
                   }
                 });
               },
@@ -252,16 +276,16 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
           _selectedReminderType = type;
         });
       },
-      reminderTime: _selectedReminderTime,
+      reminderTime: _selectedDaySection, // Pass DaySection instead of TimeOfDay
       onReminderTimeChanged: (time) {
         setState(() {
-          _selectedReminderTime = time;
+          _selectedDaySection = time!; // Update DaySection
         });
       },
-      specificReminderTime: _specificReminderTime,
+      specificReminderTime: _reminderTime, // Keep this for the actual time
       onSpecificTimeChanged: (time) {
         setState(() {
-          _specificReminderTime = time;
+          _reminderTime = time; // Update TimeOfDay
         });
       },
     );
@@ -285,6 +309,10 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading && widget.habit == null) {
+      return const HabitDetailsSkeleton();
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Habit'),
@@ -318,7 +346,7 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
             // Replace existing icon picker with category selector
             _buildCategorySelector(),
             const SizedBox(height: 16),
-            HabitTextField(
+            CustomFormTextField(
               controller: _nameController,
               label: 'Habit Name',
               hint: 'Enter habit name',
@@ -330,7 +358,7 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
               },
             ),
             const SizedBox(height: 16),
-            HabitTextField(
+            CustomFormTextField(
               controller: _descriptionController,
               label: 'Description',
               hint: 'Enter habit description',
@@ -346,7 +374,7 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
             const SizedBox(height: 16),
             // Time section picker
             DropdownButtonFormField<DaySection>(
-              value: _selectedTimeOfDay,
+              value: _selectedDaySection,
               decoration: const InputDecoration(
                 labelText: 'Preferred Time',
                 border: OutlineInputBorder(),
@@ -365,7 +393,7 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
               }).toList(),
               onChanged: (value) {
                 if (value != null) {
-                  setState(() => _selectedTimeOfDay = value);
+                  setState(() => _selectedDaySection = value);
                 }
               },
             ),
@@ -406,7 +434,7 @@ class _EditHabitScreenState extends ConsumerState<EditHabitScreen> {
                   ),
                   SizedBox(
                     width: 120,
-                    child: HabitTextField(
+                    child: CustomFormTextField(
                       controller: TextEditingController(
                           text: _timesPerPeriod.toString()),
                       label: '',

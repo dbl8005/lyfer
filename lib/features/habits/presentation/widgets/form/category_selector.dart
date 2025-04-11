@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:lyfer/core/shared/models/category_model.dart';
 import 'package:lyfer/features/habits/domain/enums/habit_enums.dart';
-import 'package:lyfer/features/habits/domain/models/habit_categories.dart';
 
 class CategorySelector extends StatelessWidget {
   final String selectedCategoryId;
@@ -16,8 +16,10 @@ class CategorySelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currentCategory =
-        findCategoryById(selectedCategoryId) ?? habitCategories.first;
+    final currentCategory = appCategories.firstWhere(
+      (category) => category.id == selectedCategoryId,
+      orElse: () => appCategories.first,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -32,7 +34,7 @@ class CategorySelector extends StatelessWidget {
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
-              children: habitCategories.map((category) {
+              children: appCategories.map((category) {
                 final isSelected = category.id == selectedCategoryId;
 
                 return Padding(

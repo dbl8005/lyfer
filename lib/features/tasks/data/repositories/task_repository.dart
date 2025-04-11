@@ -25,8 +25,29 @@ class TaskRepository {
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) => snapshot.docs.map((doc) {
-              return Task.fromFirestore(doc.data(), doc.id);
+              return Task.fromJson(
+                doc.data(),
+                docId: doc.id,
+              );
             }).toList());
+  }
+
+  // Get task by id
+  Future<Task> getTaskById(String id) async {
+    if (userId == null) {
+      throw Exception('User not authenticated');
+    }
+
+    final doc = await _tasksCollection.doc(id).get();
+
+    if (doc.exists) {
+      return Task.fromJson(
+        doc.data()!,
+        docId: doc.id,
+      );
+    } else {
+      throw Exception('Task not found');
+    }
   }
 
   // Get all tasks once
@@ -39,7 +60,10 @@ class TaskRepository {
         await _tasksCollection.orderBy('createdAt', descending: true).get();
 
     return snapshot.docs.map((doc) {
-      return Task.fromFirestore(doc.data(), doc.id);
+      return Task.fromJson(
+        doc.data(),
+        docId: doc.id,
+      );
     }).toList();
   }
 
@@ -49,10 +73,11 @@ class TaskRepository {
       throw Exception('User not authenticated');
     }
 
-    final docRef = await _tasksCollection.add(task.toJson());
-    final doc = await docRef.get();
+    final docRef = _tasksCollection.doc();
+    final updatedTask = task.copyWith(id: docRef.id);
 
-    return Task.fromFirestore(doc.data()!, doc.id);
+    await docRef.set(updatedTask.toJson());
+    return updatedTask;
   }
 
   // Update an existing task
@@ -79,12 +104,12 @@ class TaskRepository {
       throw Exception('User not authenticated');
     }
 
-    final taskDoc = _tasksCollection.doc(taskId);
-    final taskSnapshot = await taskDoc.get();
-
-    if (taskSnapshot.exists) {
-      final task = Task.fromFirestore(taskSnapshot.data()!, taskId);
-      await taskDoc.update({'isCompleted': !task.isCompleted});
+    final taskDoc = await _tasksCollection.doc(taskId).get();
+    if (taskDoc.exists) {
+      final task = Task.fromJson(taskDoc.data()!);
+      await _tasksCollection.doc(taskId).update({
+        'isCompleted': !task.isCompleted,
+      });
     } else {
       throw Exception('Task not found');
     }

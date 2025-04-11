@@ -57,8 +57,8 @@ class _HabitCalendarViewState extends ConsumerState<HabitCalendarView> {
             _buildCalendarHeader(context),
             TableCalendar(
               // Fix to show only one month - the current month
-              firstDay: DateTime(now.year, now.month, 1),
-              lastDay: DateTime(now.year, now.month + 1, 0),
+              firstDay: DateTime(now.year - 1, now.month, 1),
+              lastDay: DateTime(now.year, now.month, now.day),
               focusedDay: now,
 
               // Disable day selection on tap and disable page changing
@@ -84,8 +84,14 @@ class _HabitCalendarViewState extends ConsumerState<HabitCalendarView> {
                 ),
               ),
               calendarBuilders: CalendarBuilders(
+                outsideBuilder: (context, day, focusedDay) =>
+                    _buildCalendarDay(context, day, true),
+                todayBuilder: (context, day, focusedDay) {
+                  // Highlight today with a different color
+                  return _buildCalendarDay(context, day, false);
+                },
                 defaultBuilder: (context, day, focusedDay) =>
-                    _buildCalendarDay(context, day),
+                    _buildCalendarDay(context, day, false),
               ),
             ),
           ],
@@ -121,26 +127,14 @@ class _HabitCalendarViewState extends ConsumerState<HabitCalendarView> {
     if (_currentHabit.id != null) {
       final habitId = _currentHabit.id!;
 
-      // Check if day is applicable based on selected days
-      final isDayApplicable = _currentHabit.selectedDays.isEmpty ||
-          _currentHabit.selectedDays.contains(day.weekday % 7);
-
-      if (!isDayApplicable) {
-        // Don't allow toggling for non-applicable days
-        AppSnackbar.showError(
-          context: context,
-          message: 'This day is not scheduled for this habit',
-        );
-        return;
-      }
-
       try {
         // Toggle completion status through the service
-        final updatedHabit =
-            await ref.read(habitsProvider.notifier).toggleHabitCompletion(
-                  habitId,
-                  day,
-                );
+        final updatedHabit = await ref
+            .read(habitsRepositoryProvider.notifier)
+            .toggleHabitCompletion(
+              habitId,
+              day,
+            );
 
         // Show feedback to user
         final dayDateFormat = DateFormat('dd/MM/yyyy').format(day);
@@ -174,14 +168,10 @@ class _HabitCalendarViewState extends ConsumerState<HabitCalendarView> {
 
   /// Builds a single calendar day cell with completion status
   /// Long press on a day will toggle its completion status
-  Widget _buildCalendarDay(BuildContext context, DateTime day) {
+  Widget _buildCalendarDay(BuildContext context, DateTime day, isOutside) {
     // Check if the habit was completed on this day
     final isCompleted =
         _currentHabit.completedDates.any((date) => isSameDay(date, day));
-
-    // Check if the day is applicable for this habit based on selectedDays
-    final isDayApplicable = _currentHabit.selectedDays.isEmpty ||
-        _currentHabit.selectedDays.contains(day.weekday % 7);
 
     // Check if this is today
     final isToday = isSameDay(day, DateTime.now());
@@ -195,29 +185,28 @@ class _HabitCalendarViewState extends ConsumerState<HabitCalendarView> {
           shape: BoxShape.circle,
           // Apply appropriate background colors
           color: isCompleted
-              ? Colors.green.withOpacity(0.3)
+              ? Colors.green.shade100
               : isToday
                   ? Theme.of(context).colorScheme.primary.withOpacity(0.2)
-                  : isDayApplicable
-                      ? null
-                      : Colors.grey.withOpacity(0.1),
-          // Add a border for today
-          border: isToday
-              ? Border.all(
-                  color: Theme.of(context).colorScheme.primary,
-                  width: 2,
-                )
-              : null,
+                  : Colors.transparent,
+          border: Border.all(
+            color: isToday
+                ? Theme.of(context).colorScheme.primary
+                : Colors.transparent,
+            width: 2,
+          ),
         ),
         child: Center(
           child: Text(
             day.day.toString(),
             style: TextStyle(
-              color: isCompleted
-                  ? Colors.green.shade800
-                  : isDayApplicable
-                      ? null
-                      : Colors.grey,
+              color: isOutside
+                  ? Colors.grey
+                  : isCompleted
+                      ? Colors.green.shade800
+                      : isToday
+                          ? Theme.of(context).colorScheme.primary
+                          : Colors.black,
               fontWeight: isCompleted || isToday ? FontWeight.bold : null,
             ),
           ),

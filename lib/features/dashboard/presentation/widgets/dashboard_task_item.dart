@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:line_icons/line_icons.dart';
 import 'package:lyfer/core/config/constants/app_constants.dart';
 import 'package:lyfer/core/router/router.dart';
+import 'package:lyfer/core/shared/widgets/custom_card.dart';
 import 'package:lyfer/core/utils/snackbars/snackbar.dart';
 import 'package:lyfer/features/tasks/domain/models/task_model.dart';
 import 'package:lyfer/features/tasks/domain/utils/task_utils.dart';
@@ -22,7 +23,7 @@ class DashboardTaskItem extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final dateFormat = DateFormat('MMM dd');
 
-    return Card(
+    return CustomCard(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         leading: Container(
@@ -89,6 +90,7 @@ class DashboardTaskItem extends ConsumerWidget {
         ),
         onTap: () => context.push(
           '${AppRouterConsts.taskDetail}/${task.id}',
+          extra: task, // Pass the task object as extra data
         ),
       ),
     );

@@ -9,7 +9,8 @@ import 'package:lyfer/core/config/constants/ui_constants.dart';
 import 'package:lyfer/core/router/router.dart';
 import 'package:lyfer/core/utils/dialogs/confirm_dialog.dart';
 import 'package:lyfer/core/utils/snackbars/snackbar.dart';
-import 'package:lyfer/core/widgets/custom_card.dart';
+import 'package:lyfer/core/shared/widgets/custom_card.dart';
+import 'package:lyfer/features/habits/domain/enums/habit_enums.dart';
 import 'package:lyfer/features/tasks/domain/models/task_model.dart';
 import 'package:lyfer/features/tasks/presentation/providers/tasks_provider.dart';
 import 'package:lyfer/features/tasks/domain/enums/task_enums.dart';
@@ -31,7 +32,7 @@ class TaskItem extends ConsumerWidget {
         subtitle: _buildTaskSubtitle(context, dateFormat),
         trailing: _buildTaskActions(context, ref),
         onTap: () {
-          context.push('${AppRouterConsts.taskDetail}/${task.id}');
+          context.push('${AppRouterConsts.taskDetail}/${task.id}', extra: task);
         },
       ),
     );
@@ -58,7 +59,7 @@ class TaskItem extends ConsumerWidget {
   Widget _buildTaskTitle(BuildContext context) {
     return Row(
       children: [
-        if (task.priority != TaskPriority.none)
+        if (task.priority != Priority.none)
           Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
@@ -88,6 +89,8 @@ class TaskItem extends ConsumerWidget {
   }
 
   Widget _buildTaskSubtitle(BuildContext context, DateFormat dateFormat) {
+    final timeFormat = DateFormat('hh:mm a'); // Add time format
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -99,7 +102,24 @@ class TaskItem extends ConsumerWidget {
             overflow: TextOverflow.ellipsis,
           ),
         if (task.dueDate != null)
-          TaskDueDateBadge(dueDate: task.dueDate!, dateFormat: dateFormat),
+          Padding(
+            padding: const EdgeInsets.only(top: 4.0),
+            child: Row(
+              children: [
+                const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    '${dateFormat.format(task.dueDate!)} at ${timeFormat.format(task.dueDate!)}', // Include time
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.grey,
+                        ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }
@@ -113,19 +133,30 @@ class TaskItem extends ConsumerWidget {
           onSelected: (value) {
             switch (value) {
               case 'edit':
-                context.push('${AppRouterConsts.taskDetail}/${task.id}');
+                context.push('${AppRouterConsts.editTask}/${task.id}');
                 break;
               case 'delete':
-                // Show confirmation dialog before deleting
                 ConfirmDialog.show(
+                  context: context,
+                  title: 'Delete Task',
+                  content: 'Are you sure you want to delete this task?',
+                  confirmText: 'DELETE',
+                ).then((confirmed) {
+                  if (confirmed == true) {
+                    try {
+                      ref.read(tasksProvider.notifier).deleteTask(task.id!);
+                      AppSnackbar.show(
                         context: context,
-                        content: 'Are you sure you want to delete this task?')
-                    .then((value) {
-                  if (value == true) {
-                    ref.read(tasksProvider.notifier).deleteTask(task.id!);
-                    AppSnackbar.showSuccess(
+                        message: '${task.title} deleted successfully',
+                        backgroundColor: Colors.green,
+                      );
+                    } catch (e) {
+                      AppSnackbar.show(
                         context: context,
-                        message: '${task.title} deleted successfully');
+                        message: 'Error deleting task: $e',
+                        backgroundColor: Colors.red,
+                      );
+                    }
                   }
                 });
                 break;
@@ -161,8 +192,18 @@ class TaskItem extends ConsumerWidget {
                 ? AppTaskColors.completed
                 : AppTaskColors.pending,
           ),
-          onPressed: () {
-            ref.read(tasksProvider.notifier).toggleTaskCompletion(task.id!);
+          onPressed: () async {
+            try {
+              await ref
+                  .read(tasksProvider.notifier)
+                  .toggleTaskCompletion(task.id!);
+            } catch (e) {
+              AppSnackbar.show(
+                context: context,
+                message: 'Error updating task: $e',
+                backgroundColor: Colors.red,
+              );
+            }
           },
         ),
       ],

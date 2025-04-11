@@ -2,18 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:line_icons/line_icon.dart';
 import 'package:lyfer/core/config/enums/icon_enum.dart';
+import 'package:lyfer/core/shared/widgets/form/category_selector.dart';
+import 'package:lyfer/core/shared/widgets/form/custom_text_field.dart';
 import 'package:lyfer/features/habits/domain/enums/habit_enums.dart';
 import 'package:lyfer/features/habits/domain/models/habit_model.dart';
 import 'package:lyfer/features/habits/presentation/providers/habits_provider.dart';
 import 'package:lyfer/features/habits/presentation/widgets/form/day_selector.dart';
 import 'package:lyfer/features/habits/presentation/widgets/form/habit_color_picker.dart';
 import 'package:lyfer/features/habits/presentation/widgets/form/habit_text_field.dart';
-import 'package:lyfer/features/habits/data/repositories/habit_repository.dart';
 import 'package:line_icons/line_icons.dart';
-import 'package:lyfer/features/habits/presentation/widgets/form/habit_icon_picker.dart';
 import 'package:lyfer/features/habits/presentation/widgets/form/priority_selector.dart';
 import 'package:lyfer/features/habits/presentation/widgets/form/reminder_time_picker.dart';
-import 'package:lyfer/features/habits/presentation/widgets/form/category_selector.dart';
 
 class NewHabitScreen extends ConsumerStatefulWidget {
   const NewHabitScreen({super.key});
@@ -28,12 +27,19 @@ class _NewHabitScreenState extends ConsumerState<NewHabitScreen> {
   final _descriptionController = TextEditingController();
 
   Color? _selectedColor = Colors.grey;
-  IconData _selectedIcon = LineIcons.star;
   DaySection _selectedTimeOfDay = DaySection.morning;
   Frequency _selectedFrequency = Frequency.daily;
   int _timesPerPeriod = 1; // Default to 1 time per period
   int? _targetDays;
-  Set<int> _selectedDays = {0, 1, 2, 3, 4, 5, 6};
+  Set<WeekDay> _selectedDays = {
+    WeekDay.monday,
+    WeekDay.tuesday,
+    WeekDay.wednesday,
+    WeekDay.thursday,
+    WeekDay.friday,
+    WeekDay.saturday,
+    WeekDay.sunday,
+  };
   Priority _selectedPriority = Priority.none;
 
   Reminder _selectedReminderType = Reminder.none;
@@ -56,30 +62,41 @@ class _NewHabitScreenState extends ConsumerState<NewHabitScreen> {
 
     setState(() => _isLoading = true);
 
-    final selectedIconName = HabitIcon.values
-        .firstWhere(
-          (habitIcon) => habitIcon.icon == _selectedIcon,
-        )
-        .name;
-
     try {
       final habit = HabitModel(
         name: _nameController.text,
-        categoryId: _selectedCategoryId, // Replace icon with this
+        categoryId: _selectedCategoryId,
+        createdAt: DateTime.now(),
         color: _selectedColor,
-        preferredTime: _selectedTimeOfDay,
+        daySection: _selectedTimeOfDay,
         description: _descriptionController.text,
-        targetDays: _targetDays,
         frequency: _selectedFrequency,
         timesPerPeriod: _timesPerPeriod,
-        selectedDays: _selectedDays,
-        priority: _selectedPriority,
+        targetDays: _targetDays,
+        completedDates: {},
+        isArchived: false,
         reminderType: _selectedReminderType,
-        reminderTime: _selectedReminderTime,
-        specificReminderTime: _specificReminderTime,
+        reminderTime: _selectedReminderTime == null
+            ? null
+            : TimeOfDay.fromDateTime(DateTime.now()),
+        tags: [],
+        priority: _selectedPriority,
+        notes: [],
+        selectedDays: _selectedDays.isEmpty
+            ? {
+                WeekDay.monday,
+                WeekDay.tuesday,
+                WeekDay.wednesday,
+                WeekDay.thursday,
+                WeekDay.friday,
+                WeekDay.saturday,
+                WeekDay.sunday,
+              }
+            : _selectedDays,
+        isPinned: false,
       );
 
-      await ref.read(habitsProvider.notifier).createHabit(habit);
+      await ref.read(habitsRepositoryProvider.notifier).createHabit(habit);
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
       if (mounted) {
@@ -129,7 +146,7 @@ class _NewHabitScreenState extends ConsumerState<NewHabitScreen> {
             const SizedBox(height: 16),
 
             // Habit name field
-            HabitTextField(
+            CustomFormTextField(
               controller: _nameController,
               label: 'Habit Name',
               hint: 'Enter habit name',
@@ -143,7 +160,7 @@ class _NewHabitScreenState extends ConsumerState<NewHabitScreen> {
 
             // Rest of your form fields
             const SizedBox(height: 16),
-            HabitTextField(
+            CustomFormTextField(
               controller: _descriptionController,
               label: 'Description',
               hint: 'Enter habit description',
@@ -163,12 +180,12 @@ class _NewHabitScreenState extends ConsumerState<NewHabitScreen> {
             const SizedBox(height: 16),
             _buildDaySelector(),
             const SizedBox(height: 16),
-            _buildTargetDaysPicker(),
-            const SizedBox(height: 16),
+            // _buildTargetDaysPicker(),
+            // const SizedBox(height: 16),
             _buildPrioritySelector(),
             const SizedBox(height: 16),
-            _buildReminderPicker(),
-            const SizedBox(height: 16),
+            // _buildReminderPicker(),
+            // const SizedBox(height: 16),
           ],
         ),
       ),
@@ -241,7 +258,7 @@ class _NewHabitScreenState extends ConsumerState<NewHabitScreen> {
               ),
               SizedBox(
                 width: 120,
-                child: HabitTextField(
+                child: CustomFormTextField(
                   controller:
                       TextEditingController(text: _timesPerPeriod.toString()),
                   label: '',
@@ -274,12 +291,15 @@ class _NewHabitScreenState extends ConsumerState<NewHabitScreen> {
   }
 
   Widget _buildDaySelector() {
+    // Convert Set<WeekDay> to Set<int> using the index values
+    final selectedDaysAsInts = _selectedDays.map((day) => day.index).toSet();
+
     return DaySelector(
-      selectedDays: _selectedDays ??
-          (_selectedFrequency == Frequency.daily ? {0, 1, 2, 3, 4, 5, 6} : {}),
-      onDaysSelected: (days) {
+      selectedDays: selectedDaysAsInts,
+      onDaysSelected: (selectedDays) {
         setState(() {
-          _selectedDays = days;
+          _selectedDays =
+              selectedDays.map((day) => WeekDay.values[day]).toSet();
         });
       },
       dailyHabit: _selectedFrequency == Frequency.daily,
@@ -332,28 +352,28 @@ class _NewHabitScreenState extends ConsumerState<NewHabitScreen> {
     );
   }
 
-  Widget _buildReminderPicker() {
-    return ReminderTimePicker(
-      reminderType: _selectedReminderType,
-      onReminderTypeChanged: (type) {
-        setState(() {
-          _selectedReminderType = type;
-        });
-      },
-      reminderTime: _selectedReminderTime,
-      onReminderTimeChanged: (time) {
-        setState(() {
-          _selectedReminderTime = time;
-        });
-      },
-      specificReminderTime: _specificReminderTime,
-      onSpecificTimeChanged: (time) {
-        setState(() {
-          _specificReminderTime = time;
-        });
-      },
-    );
-  }
+  // Widget _buildReminderPicker() {
+  //   return ReminderTimePicker(
+  //     reminderType: _selectedReminderType,
+  //     onReminderTypeChanged: (type) {
+  //       setState(() {
+  //         _selectedReminderType = type;
+  //       });
+  //     },
+  //     reminderTime: _selectedReminderTime,
+  //     onReminderTimeChanged: (time) {
+  //       setState(() {
+  //         _selectedReminderTime = time;
+  //       });
+  //     },
+  //     specificReminderTime: _specificReminderTime,
+  //     onSpecificTimeChanged: (time) {
+  //       setState(() {
+  //         _specificReminderTime = time;
+  //       });
+  //     },
+  //   );
+  // }
 
   Widget _buildCategorySelector() {
     return CategorySelector(

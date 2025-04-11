@@ -16,7 +16,7 @@ class DashboardHabitItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isCompleted = habit.isCompletedForDay(DateTime.now());
+    final isCompleted = habit.isCompletedToday();
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -86,8 +86,8 @@ class DashboardHabitItem extends ConsumerWidget {
 
   Future<void> _toggleCompletion(BuildContext context, WidgetRef ref) async {
     try {
-      final isCompleted = habit.isCompletedForDay(DateTime.now());
-      await ref.read(habitsProvider.notifier).toggleHabitCompletion(
+      final isCompleted = habit.isCompletedToday();
+      await ref.read(habitsRepositoryProvider.notifier).toggleHabitCompletion(
             habit.id!,
             DateTime.now(),
           );

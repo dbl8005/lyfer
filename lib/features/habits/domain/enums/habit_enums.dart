@@ -39,6 +39,16 @@ enum Frequency {
   daily,
   weekly,
   monthly,
+  yearly,
+  custom; // Custom frequency for advanced users
+
+  String get label => switch (this) {
+        Frequency.daily => 'Daily',
+        Frequency.weekly => 'Weekly',
+        Frequency.monthly => 'Monthly',
+        Frequency.yearly => 'Yearly',
+        Frequency.custom => 'Custom',
+      };
 }
 
 enum Reminder {
@@ -80,5 +90,34 @@ enum Priority {
         Priority.medium => Icons.remove,
         Priority.high => Icons.keyboard_arrow_up,
         Priority.critical => Icons.priority_high,
+      };
+}
+
+enum WeekDay {
+  monday,
+  tuesday,
+  wednesday,
+  thursday,
+  friday,
+  saturday,
+  sunday;
+
+  String get label => switch (this) {
+        WeekDay.monday => 'Monday',
+        WeekDay.tuesday => 'Tuesday',
+        WeekDay.wednesday => 'Wednesday',
+        WeekDay.thursday => 'Thursday',
+        WeekDay.friday => 'Friday',
+        WeekDay.saturday => 'Saturday',
+        WeekDay.sunday => 'Sunday',
+      };
+  int get dayIndex => switch (this) {
+        WeekDay.monday => 0,
+        WeekDay.tuesday => 1,
+        WeekDay.wednesday => 2,
+        WeekDay.thursday => 3,
+        WeekDay.friday => 4,
+        WeekDay.saturday => 5,
+        WeekDay.sunday => 6,
       };
 }

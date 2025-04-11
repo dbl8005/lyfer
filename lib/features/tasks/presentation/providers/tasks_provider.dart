@@ -1,79 +1,72 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lyfer/features/tasks/data/repositories/task_repository.dart';
 import 'package:lyfer/features/tasks/domain/models/task_model.dart';
 import 'package:lyfer/features/auth/presentation/providers/auth_provider.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-// Create a task repository provider that depends on the authenticated user
-final taskRepositoryProvider = Provider<TaskRepository>((ref) {
-  final authState = ref.watch(authStateChangesProvider).asData?.value;
+part 'tasks_provider.g.dart';
 
-  return TaskRepository(
-    userId: authState?.uid,
-  );
-});
-
-// Stream-based tasks provider for real-time updates
-final tasksStreamProvider = StreamProvider<List<Task>>((ref) {
-  final repository = ref.watch(taskRepositoryProvider);
-  return repository.watchTasks();
-});
-
-// State notifier provider for tasks management
-final tasksProvider =
-    StateNotifierProvider<TasksNotifier, AsyncValue<List<Task>>>((ref) {
-  final repository = ref.watch(taskRepositoryProvider);
-  return TasksNotifier(repository, ref);
-});
-
-class TasksNotifier extends StateNotifier<AsyncValue<List<Task>>> {
-  final TaskRepository _repository;
-  final Ref _ref;
-
-  TasksNotifier(this._repository, this._ref)
-      : super(const AsyncValue.loading()) {
-    _init();
+@riverpod
+class Tasks extends _$Tasks {
+  @override
+  Future<List<Task>> build() async {
+    final authState = ref.watch(authStateChangesProvider).asData?.value;
+    if (authState == null) {
+      return []; // Return an empty list if the user is not authenticated
+    }
+    final repository = TaskRepository(userId: authState.uid);
+    return await repository.getTasks();
   }
 
-  Future<void> _init() async {
-    _ref.listen(tasksStreamProvider, (previous, next) {
-      next.whenData((tasks) {
-        state = AsyncValue.data(tasks);
-      });
-    });
+  // Stream tasks for real-time updates
+  Stream<List<Task>> watchTasks() {
+    final authState = ref.watch(authStateChangesProvider).asData?.value;
+    if (authState == null) {
+      return Stream.value(
+          []); // Return an empty stream if the user is not authenticated
+    }
+    final repository = TaskRepository(userId: authState.uid);
+    return repository.watchTasks();
   }
 
+  // Add a new task
   Future<void> addTask(Task task) async {
-    try {
-      await _repository.addTask(task);
-      // The stream will update state automatically
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
+    final authState = ref.watch(authStateChangesProvider).asData?.value;
+    if (authState == null) {
+      throw Exception('User not authenticated');
     }
+    final repository = TaskRepository(userId: authState.uid);
+    await repository.addTask(task);
   }
 
+  // Update an existing task
   Future<void> updateTask(Task task) async {
-    try {
-      await _repository.updateTask(task);
-      // The stream will update state automatically
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
+    final authState = ref.watch(authStateChangesProvider).asData?.value;
+    if (authState == null) {
+      throw Exception('User not authenticated');
     }
+    final repository = TaskRepository(userId: authState.uid);
+    await repository.updateTask(task);
   }
 
+  // Toggle task completion status
   Future<void> toggleTaskCompletion(String id) async {
-    try {
-      await _repository.toggleTaskCompletion(id);
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
+    final authState = ref.watch(authStateChangesProvider).asData?.value;
+    if (authState == null) {
+      throw Exception('User not authenticated');
     }
+    final repository = TaskRepository(userId: authState.uid);
+    await repository.toggleTaskCompletion(id);
   }
 
+  // Delete a task
   Future<void> deleteTask(String id) async {
-    try {
-      await _repository.deleteTask(id);
-      // The stream will update state automatically
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
+    final authState = ref.watch(authStateChangesProvider).asData?.value;
+    if (authState == null) {
+      throw Exception('User not authenticated');
     }
+    final repository = TaskRepository(userId: authState.uid);
+    await repository.deleteTask(id);
   }
 }

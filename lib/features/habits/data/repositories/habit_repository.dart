@@ -4,10 +4,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lyfer/features/habits/domain/models/habit_model.dart';
 
 class HabitRepository {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  // Firebase Firestore instance
+
+  final FirebaseFirestore _firestore;
   final String? userId;
 
-  HabitRepository({required this.userId});
+  HabitRepository({
+    required this.userId,
+    FirebaseFirestore? firestore,
+  }) : _firestore = firestore ?? FirebaseFirestore.instance;
 
   // Collection references
   CollectionReference<Map<String, dynamic>> get _usersCollection =>
@@ -26,7 +31,7 @@ class HabitRepository {
         .snapshots()
         .map((snapshot) {
       return snapshot.docs.map((doc) {
-        return HabitModel.fromJson(doc.id, doc.data());
+        return HabitModel.fromJson(doc.data(), docId: doc.id);
       }).toList();
     });
   }
@@ -49,7 +54,7 @@ class HabitRepository {
   Future<HabitModel> toggleHabitCompletion(
       String habitId, DateTime date) async {
     final habitDoc = await _habitsCollection.doc(habitId).get();
-    final habit = HabitModel.fromJson(habitId, habitDoc.data()!);
+    final habit = HabitModel.fromJson(habitDoc.data()!, docId: habitId);
 
     final completedDates = List<DateTime>.from(habit.completedDates);
     final dateExists = completedDates.any(
@@ -78,6 +83,33 @@ class HabitRepository {
     if (!doc.exists) {
       throw 'Habit not found';
     }
-    return HabitModel.fromJson(doc.id, doc.data()!);
+    return HabitModel.fromJson(doc.data()!, docId: habitId);
+  }
+
+  Future<int> updateHabitStreak(String habitId, int newStreak) async {
+    // Get current habit to check bestStreak
+    final doc = await _habitsCollection.doc(habitId).get();
+    final habit = HabitModel.fromJson(doc.data()!, docId: habitId);
+
+    // Update the streak and best streak if needed
+    final updateData = <String, dynamic>{'streakCount': newStreak};
+
+    // If new streak is better than the current best streak, update it
+    if (newStreak > (habit.bestStreak ?? 0)) {
+      updateData['bestStreak'] = newStreak;
+    }
+
+    await _habitsCollection.doc(habitId).update(updateData);
+
+    // Get updated habit
+    final updatedDoc = await _habitsCollection.doc(habitId).get();
+    return HabitModel.fromJson(updatedDoc.data()!, docId: habitId).streakCount;
+  }
+
+  Future<List<HabitModel>> getHabits() async {
+    final snapshot = await _habitsCollection.get();
+    return snapshot.docs.map((doc) {
+      return HabitModel.fromJson(doc.data(), docId: doc.id);
+    }).toList();
   }
 }
